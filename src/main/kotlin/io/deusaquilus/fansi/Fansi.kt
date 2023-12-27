@@ -54,7 +54,7 @@ class Str private constructor(private val chars: Array<Char>, private val colors
    * Concatenates two [[fansi.Str]]s, preserving the colors in each one and
    * avoiding any interference between them
    */
-  fun `++`(other: Str): Str {
+  operator fun plus(other: Str): Str {
     val newChars = Arrays.copyOf(chars, chars.size + other.chars.size)
     val newColors = Arrays.copyOf(colors, colors.size + other.colors.size)
     System.arraycopy(other.chars, 0, newChars, chars.size, other.chars.size)
@@ -166,9 +166,9 @@ class Str private constructor(private val chars: Array<Char>, private val colors
   }
 
   fun overlay(attrs: Attrs, start: Int = 0, end: Int = length) =
-    overlayAll(sequenceOf(Triple(attrs, start, end)))
+    overlayAll(listOf(Triple(attrs, start, end)))
 
-  fun overlayAll(attrs: Sequence<Triple<Attrs, Int, Int>>): Str {
+  fun overlayAll(attrs: Iterable<Triple<Attrs, Int, Int>>): Str {
     val newColors = colors.clone()
     for ((attrs, start, end) in attrs) {
       require(end >= start) {
@@ -212,7 +212,6 @@ class Str private constructor(private val chars: Array<Char>, private val colors
      *                  input `CharSequence` contains an Ansi escape not
      *                  recognized by Fansi as a valid color.
      */
-
     operator fun invoke(raw: CharSequence, errorMode: ErrorMode = ErrorMode.Throw): Str {
       val chars = Array<Char>(raw.length, {Char(0)})
       val colors = Array<State>(raw.length, {0})
@@ -310,10 +309,23 @@ class Str private constructor(private val chars: Array<Char>, private val colors
     fun fromArrays(chars: Array<Char>, colors: Array<State>) =
       Str(chars.clone(), colors.clone())
 
-    fun apply(vararg args: Str): Str =
+    operator fun invoke(vararg args: Str): Str =
       join(args.toList())
 
-    fun join(args: Iterable<Str>, sep: Str = Str("")): Str {
+    // Need to be careful here about the type of args, since we can easily go into an infinite loop
+    operator fun invoke(vararg args: String): Str =
+      // If there's only one argument, call the main invoke function
+      if (args.size == 1) invoke(args[0] as CharSequence)
+      // Otherwise invoke one by one and join them
+      else join(args.map { invoke(it as CharSequence) })
+
+    fun join(args: Iterable<Str>, sep: String): Str =
+      join(args, sep.toStr())
+
+    fun join(args: Iterable<Str>): Str =
+      join(args, Str(""))
+
+    fun join(args: Iterable<Str>, sep: Str): Str {
       val length = args.map { it.length + sep.length }.sum() - sep.length
       val chars = Array<Char>(length, {Char(0)})
       val colors = Array<State>(length, {0})
@@ -816,7 +828,7 @@ abstract class ColorCategory(offset: Int, width: Int, val colorCode: Int): Categ
     makeAttr(trueRgbEscape(r, g, b), (273 + index).toLong(), Name("True(" + r + "," + g + "," + b + ")"))
 
   fun trueRgbEscape(r: Int, g: Int, b: Int) =
-    "\u001b<" + colorCode + ";2;" + r + ";" + g + ";" + b + "m"
+    "\u001b[" + colorCode + ";2;" + r + ";" + g + ";" + b + "m"
 
   /**
    * Create a TrueColor color, from a given index within the 16-million-color
@@ -842,7 +854,7 @@ abstract class ColorCategory(offset: Int, width: Int, val colorCode: Int): Categ
     require(0 <= r && r < 256) { "True parameter `r` must be 0 <= r < 256, not " + r }
     require(0 <= g && g < 256) { "True parameter `g` must be 0 <= r < 256, not " + g }
     require(0 <= b && b < 256) { "True parameter `b` must be 0 <= r < 256, not " + b }
-    return r shl 16 or g shl 8 or b
+    return (r shl 16) or (g shl 8) or b
   }
 
   override fun lookupEscape(applyState : Long): String {
