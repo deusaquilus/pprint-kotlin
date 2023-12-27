@@ -285,6 +285,34 @@ class FansiTests : FunSpec({
 
     test("trueBackgrounds") { tabulate((0 until 0xFFFFFF step 10000).map { i -> Back.True(i) }) }
 
+    test("blackState") { assert (Color.lookupAttr(273 shl 3) == Color.True(0,0,0) ) }
+
+    test("whitState") {  assert (Color.lookupAttr(16777488 shl 3) == Color.True(255,255,255) ) }
+
+    test("redState") {  assert (Color.lookupAttr((0xFF0000 + 273) shl 3) == Color.True(255,0,0)) }
+
+    test("lastFullState") { assert ( Color.lookupAttr(272 shl 3) == Color.Full[255] ) }
+
+    context("parsing"){
+      fun check(frag: Str) {
+        val parsed = Str(frag.render())
+        assert(parsed == frag)
+        println(parsed)
+      }
+      test("Check 255,0,0") { check(Color.True(255, 0, 0)("lol")) }
+      test("Check 1, 234, 56") { check(Color.True(1, 234, 56)("lol")) }
+      test("Check 255, 255, 255") { check(Color.True(255, 255, 255)("lol")) }
+      test("Check True(10000)") { check(Color.True(10000)("lol")) }
+      test("Check 0..255") {
+        for(i in 0..255) check(Color.True(i,i,i)("x"))
+        println("")
+      }
+      test("Check 127, 126, 0 print") { check(
+        ("#" + Color.True(127, 126, 0)("lol") + "omg" + Color.True(127, 126, 0)("wtf")).toStr()
+      )}
+
+      test("Check 0..255 Square") { square((0 ..255).map { i ->  Color.True(i,i,i)}) }
+    }
   }
 
 })

@@ -14,36 +14,9 @@
 
 
 
-      test("blackState") { assert (Color.lookupAttr(273 << 3) == Color.True(0,0,0) ) }
-
-      test("whitState") {  assert (Color.lookupAttr(16777488 << 3) == Color.True(255,255,255) ) }
-
-      test("redState") {  assert (Color.lookupAttr((0xFF0000 + 273) << 3) == Color.True(255,0,0)) }
-
-      test("lastFullState") { assert ( Color.lookupAttr(272 << 3) == Color.Full(255)) }
-
-      test("parsing"){
-        fun check(frag: Str) = {
-          val parsed = Str(frag.render())
-          assert(parsed == frag)
-          print(parsed)
-        }
-        test - check(Color.True(255, 0, 0)("lol"))
-        test - check(Color.True(1, 234, 56)("lol"))
-        test - check(Color.True(255, 255, 255)("lol"))
-        test - check(Color.True(10000)("lol"))
-        test{
-          for(i <- 0 to 255) yield check(Color.True(i,i,i)("x"))
-          println()
-        }
-        test - check(
-          "#" + Color.True(127, 126, 0)("lol") + "omg" + Color.True(127, 126, 0)("wtf")
-        )
-
-        test - square(for(i <- 0 to 255) yield Color.True(i,i,i))
 
 
-      }
+
       test("failure"){
         test("tooLongToParse"){
           test - intercept[IllegalArgumentException]{
