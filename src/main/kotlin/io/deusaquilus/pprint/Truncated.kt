@@ -1,4 +1,4 @@
-package io.deusaquilus.kprint
+package io.deusaquilus.pprint
 
 import io.deusaquilus.fansi.Str
 import io.deusaquilus.fansi.toStr

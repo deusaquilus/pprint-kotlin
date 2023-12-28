@@ -1,4 +1,4 @@
-package io.deusaquilus.kprint
+package io.deusaquilus.pprint
 
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1

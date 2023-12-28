@@ -1,4 +1,4 @@
-package io.deusaquilus.kprint
+package io.deusaquilus.pprint
 
 /**
  * A lazy AST representing pretty-printable text. Models `foo(a, b)`
