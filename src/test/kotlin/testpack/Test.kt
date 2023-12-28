@@ -1,8 +1,8 @@
 package testpack
 
-import io.deusaquilus.kprint
+import io.deusaquilus.pprint
 
 fun main() {
-  println(kprint("foo"))
+  println(pprint("foo"))
 
 }

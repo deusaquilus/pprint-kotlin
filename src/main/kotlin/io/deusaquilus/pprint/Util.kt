@@ -18,7 +18,7 @@ object Util {
    * how lazy it's meant to be, whereas `ConcatIterator` here is obviously
    * lazy and won't even evaluate each iterator until you ask it to
    */
-  class ConcatIterator<T>(val it0: Iterator<Iterator<T>>, val joiner: () -> Iterator<T>): Iterator<T>{
+  class ConcatIterator<T>(val it0: Iterator<Iterator<T>>, val joiner: () -> Iterator<T>): Iterator<T> {
     private var head: Iterator<T>? = null
     private var count = 0
 
@@ -33,6 +33,11 @@ object Util {
 
         check()
       }
+
+    companion object {
+      fun <T> fromSequences(it0: Sequence<Sequence<T>>, joiner: () -> Sequence<T>) =
+        ConcatIterator(it0.map { it.iterator() }.iterator(), { joiner().iterator() })
+    }
 
     override fun hasNext() = check()
 

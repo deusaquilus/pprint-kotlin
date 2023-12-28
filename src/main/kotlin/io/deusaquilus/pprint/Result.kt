@@ -1,6 +1,7 @@
 package io.deusaquilus.pprint
 
 import io.deusaquilus.fansi.Str
+import io.deusaquilus.fansi.toStr
 
 class Result(val iter: Sequence<Str>,
   val completedLineCount0: () -> Int,
@@ -49,7 +50,8 @@ class Result(val iter: Sequence<Str>,
   }
 
   companion object {
-    fun fromString(s: () -> Str): Result {
+    fun fromString(s: () -> String): Result = fromStr { s().toStr() }
+    fun fromStr(s: () -> Str): Result {
       val lines by lazy { s().plainText.lineSequence().toList() }
       // Note that in PPrint this is new Result(Iterator(s), ...) which is not actually lazy!
       return Result(generateSequence(s), { lines.size - 1 }, { lines.last().length })

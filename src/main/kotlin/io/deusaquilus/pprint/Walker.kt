@@ -1,5 +1,7 @@
 package io.deusaquilus.pprint
 
+import io.deusaquilus.fansi.Attrs
+
 /**
  * A lazy AST representing pretty-printable text. Models `foo(a, b)`
  * `foo op bar`, and terminals `foo` in both lazy and eager forms
@@ -38,8 +40,8 @@ sealed interface Tree {
     val leftOffset: Int,
     val indentCount: Int,
     val indentStep: Int,
-    val literalColor: fansi.Attrs,
-    val applyPrefixColor: fansi.Attrs
+    val literalColor: Attrs,
+    val applyPrefixColor: Attrs
   )
 }
 

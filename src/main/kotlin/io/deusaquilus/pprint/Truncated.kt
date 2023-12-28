@@ -77,8 +77,8 @@ class Truncated(
     Internal.isTruncated0
   }
 
-  // TODO need to implement result
-  //fun toResult() = Result(this, completedLineCount, lastLineLength)
+
+  fun toResult() = Result(this.asSequence(), {completedLineCount}, {lastLineLength})
 
   override fun hasNext() = (Internal.chunks.hasNext() && Internal.completedLines < height - 1) || !Internal.lastLineFinished
 
