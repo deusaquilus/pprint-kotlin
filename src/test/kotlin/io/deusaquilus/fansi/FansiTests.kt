@@ -312,7 +312,250 @@ class FansiTests : FunSpec({
       )}
 
       test("Check 0..255 Square") { square((0 ..255).map { i ->  Color.True(i,i,i)}) }
+
+      context("failure"){
+        context("tooLongToParse"){
+          test("Too long: [38;2;0;0;256m") { shouldThrow<IllegalArgumentException> {
+            Str("\u001b[38;2;0;0;256m").plainText.toList().map { it.code }
+          }}
+          test("Too long: [38;2;0;256;0m") {  shouldThrow<IllegalArgumentException> {
+            Str("\u001b[38;2;0;256;0m").plainText.toList().map { it.code }
+          }}
+          test("Too long: [38;2;256;0;0m") {  shouldThrow<IllegalArgumentException> {
+            Str("\u001b[38;2;256;0;0m").plainText.toList().map { it.code }
+          }}
+          test("Too long: [38;2;1111;0;0m") {  shouldThrow<IllegalArgumentException> {
+            Str("\u001b[38;2;1111;0;0m").plainText.toList().map { it.code }
+          }}
+        }
+        test("truncatedParsing"){
+          val escape = Color.True(255, 0, 0).escape
+          for (i in 1 until (escape.length - 1)) {
+            shouldThrow < IllegalArgumentException > {
+              Str(escape.dropLast(i))
+            }
+          }
+        }
+        context("args"){
+          test("Should throw on: olor.True(256, 0, 0)") { shouldThrow<IllegalArgumentException>{ Color.True(256, 0, 0) } }
+          test("Should throw on: Color.True(0, 256, 0") {  shouldThrow<IllegalArgumentException>{ Color.True(0, 256, 0) } }
+          test("Should throw on: Color.True(0, 0, 256)") {  shouldThrow<IllegalArgumentException>{ Color.True(0, 0, 256) } }
+          test("Should throw on: Color.True(-1, 0, 0)") {  shouldThrow<IllegalArgumentException>{ Color.True(-1, 0, 0) } }
+          test("Should throw on: Color.True(0, -1, 0)") {  shouldThrow<IllegalArgumentException>{ Color.True(0, -1, 0) } }
+          test("Should throw on: Color.True(0, 0, -1)") {  shouldThrow<IllegalArgumentException>{ Color.True(0, 0, -1) } }
+        }
+      }
+    }
+
+    context("emitAnsiCodes"){
+      test("basic") {
+        assert(Attrs.emitAnsiCodes(0, Color.Red.applyMask) == Console.RED)
+        assert(Attrs.emitAnsiCodes(Color.Red.applyMask, 0) == Color.Reset.escape)
+      }
+      test("combo"){
+        // One color stomps over the other
+        val colorColor = Color.Red + Color.Blue
+        assert(Attrs.emitAnsiCodes(0, colorColor.applyMask) == Console.BLUE)
+
+
+        val colorBold = Color.Red + Bold.On
+        assert(Attrs.emitAnsiCodes(0, colorBold.applyMask) == Console.RED + Console.BOLD)
+        // unlike Colors and Underlined and Reversed, Bold needs a hard reset,
+        assert(Attrs.emitAnsiCodes(colorBold.applyMask, 0) == Console.RESET)
+      }
+    }
+
+    context("negative"){
+      context("errorMode"){
+        // Make sure that Str throws on most common non-color
+        // fansi terminal commands
+        //
+        // List of common non-color fansi terminal commands taken from
+        // https://en.wikipedia.org/wiki/ANSI_escape_code#Non-CSI_codes
+
+        fun check(s: String, msg: String) {
+          // If I ask it to throw, it throws
+          val thrownError = shouldThrow<IllegalArgumentException>{
+            Str(s, errorMode = ErrorMode.Throw)
+          }
+          assert(thrownError.message?.contains(msg) ?: false)
+          val thrownError2 = shouldThrow<IllegalArgumentException>{
+            Str.Throw(s)
+          }
+          assert(thrownError2.message?.contains(msg) ?: false)
+          // If I ask it to sanitize, the escape character is gone but the
+          // rest of each escape sequence remains
+          val sanitized = Str(s, errorMode = ErrorMode.Sanitize)
+          assert(sanitized.plainText == ("Hello" + msg + "World"))
+          val sanitized2 = Str.Sanitize(s)
+          assert(sanitized2.plainText == ("Hello" + msg + "World"))
+
+          // If I ask it to strip, everything is gone
+          val stripped = Str(s, errorMode = ErrorMode.Strip)
+          assert(stripped.plainText == "HelloWorld")
+          val stripped2 = Str.Strip(s)
+          assert(stripped2.plainText == "HelloWorld")
+        }
+
+        test("cursorUp") { check("Hello\u001b[2AWorld", "[2A") }
+        test("cursorDown") { check("Hello\u001b[2BWorld", "[2B") }
+        test("cursorForward") { check("Hello\u001b[2CWorld", "[2C") }
+        test("cursorBack") { check("Hello\u001b[2DWorld", "[2D") }
+        test("cursorNextLine") { check("Hello\u001b[2EWorld", "[2E") }
+        test("cursorPrevLine") { check("Hello\u001b[2FWorld", "[2F") }
+        test("cursorHorizontalAbs") { check("Hello\u001b[2GWorld", "[2G") }
+        test("cursorPosition") { check("Hello\u001b[2;2HWorld", "[2;2H") }
+        test("eraseDisplay") { check("Hello\u001b[2JWorld", "[2J") }
+        test("eraseLine") { check("Hello\u001b[2KWorld", "[2K") }
+        test("scrollUp") { check("Hello\u001b[2SWorld", "[2S") }
+        test("scrollDown") { check("Hello\u001b[2TWorld", "[2T") }
+        test("horizontalVerticalPos") { check("Hello\u001b[2;2fWorld", "[2;2f") }
+        test("selectGraphicRendition") { check("Hello\u001b[2mWorld", "[2m") }
+        test("auxPortOn") { check("Hello\u001b[5iWorld", "[5i") }
+        test("auxPortOff") { check("Hello\u001b[4iWorld", "[4i") }
+        test("deviceStatusReport") { check("Hello\u001b[6nWorld", "[6n") }
+        test("saveCursor") { check("Hello\u001b[sWorld", "[") }
+        test("restoreCursor") { check("Hello\u001b[uWorld", "[u") }
+      }
+      test("outOfBounds"){
+        shouldThrow<IllegalArgumentException>{ Str("foo").splitAt(10) }
+        shouldThrow<IllegalArgumentException>{ Str("foo").splitAt(4) }
+        shouldThrow<IllegalArgumentException>{ Str("foo").splitAt(-1) }
+        shouldThrow<IllegalArgumentException>{ Str("foo").substring(0, 4)}
+        shouldThrow<IllegalArgumentException>{ Str("foo").substring(-1, 2)}
+        shouldThrow<IllegalArgumentException>{ Str("foo").substring(2, 1)}
+      }
+    }
+
+    context("multipleAttrs"){
+      test("identicalMasksGetCollapsed"){
+        val redRed = Color.Red + Color.Red
+        assert(redRed.resetMask == Color.Red.resetMask)
+        assert(redRed.applyMask == Color.Red.applyMask)
+      }
+      test("overlappingMasksGetReplaced"){
+        val redBlue = Color.Red + Color.Blue
+        assert(redBlue.resetMask == Color.Blue.resetMask)
+        assert(redBlue.applyMask == Color.Blue.applyMask)
+      }
+      test("semiOverlappingMasks"){
+        val resetRed = Attr.Reset + Color.Red
+        val redReset = Color.Red + Attr.Reset
+
+        assert(resetRed != Attr.Reset)
+        assert(resetRed != Color.Red)
+        assert(redReset == Attr.Reset)
+        assert(redReset != Color.Red)
+        assert(redReset != resetRed)
+        assert(resetRed.resetMask == Attr.Reset.resetMask)
+        assert(resetRed.applyMask == Color.Red.applyMask)
+
+      }
+      test("separateMasksGetCombined"){
+        val redBold = Color.Red + Bold.On
+
+
+        assert(redBold.resetMask == (Color.Red.resetMask or Bold.On.resetMask))
+        assert(redBold.applyMask == (Color.Red.applyMask or Bold.On.applyMask))
+
+      }
+      test("applicationWorks"){
+        val redBlueBold = Color.Red + Color.Blue + Bold.On
+        val colored = redBlueBold("Hello World")
+        val separatelyColored = Bold.On(Color.Blue(Color.Red("Hello World")))
+        assert(colored.render() == separatelyColored.render())
+      }
+      test("equality"){
+        assert(Color.Blue + Color.Red == Color.Red)
+        assert(Color.Red == Color.Blue + Color.Red)
+        assert(Bold.On + Color.Red != Color.Red)
+        assert(Color.Red != Bold.On + Color.Red)
+      }
     }
   }
+
+  // TODO These work, check them against the Fansi perf results
+//  context("perf"){
+//    val input = "+++$R---$G***$B///".repeat(1000)
+//
+//    test("parsing"){
+//      val start = System.currentTimeMillis()
+//      var count = 0
+//      while(System.currentTimeMillis() < start + 5000){
+//        count += 1
+//        Str(input)
+//      }
+//      val end = System.currentTimeMillis()
+//      println("===== parsing: " + ((end - start).toDouble() / count) + "=====")
+//    }
+//    test("rendering"){
+//
+//      val start = System.currentTimeMillis()
+//      var count = 0
+//      val parsed = Str(input)
+//      while(System.currentTimeMillis() < start + 5000){
+//        count += 1
+//        parsed.render()
+//      }
+//      val end = System.currentTimeMillis()
+//      println("===== rendering: " + ((end - start).toDouble() / count) + "=====")
+//    }
+//    test("concat"){
+//      val start = System.currentTimeMillis()
+//      var count = 0
+//      val fansiStr = Str(input)
+//      while(System.currentTimeMillis() < start + 5000){
+//        count += 1
+//        fansiStr + fansiStr
+//      }
+//      val end = System.currentTimeMillis()
+//      println("===== concat: " + ((end - start).toDouble() / count) + "=====")
+//    }
+//    test("splitAt"){
+//      val start = System.currentTimeMillis()
+//      var count = 0
+//      val fansiStr = Str(input)
+//      while(System.currentTimeMillis() < start + 5000){
+//        count += 1
+//        fansiStr.splitAt(count % fansiStr.length)
+//      }
+//      val end = System.currentTimeMillis()
+//      println("===== splitAt: " + ((end - start).toDouble() / count) + "=====")
+//    }
+//    test("substring"){
+//      val start = System.currentTimeMillis()
+//      var count = 0
+//      val fansiStr = Str(input)
+//      while(System.currentTimeMillis() < start + 5000){
+//        count += 1
+//        val start = count % fansiStr.length
+//        val end = count % (fansiStr.length - start) + start
+//        fansiStr.substring(start, end)
+//      }
+//      val end = System.currentTimeMillis()
+//      println("===== substring: " + ((end - start).toDouble() / count) + "=====")
+//    }
+//    test("overlay"){
+//      val start = System.currentTimeMillis()
+//      var count = 0
+//      val fansiStr = Str(input)
+//      val attrs =
+//        Color.Red +
+//          Color.Blue +
+//          Bold.On +
+//          Reversed.On +
+//          Bold.Off +
+//          Underlined.On
+//
+//      while(System.currentTimeMillis() < start + 5000){
+//        count += 1
+//        val start = count % fansiStr.length
+//        val end = count % (fansiStr.length - start) + start
+//        fansiStr.overlay(attrs, start, end)
+//      }
+//      val end = System.currentTimeMillis()
+//      println("===== overlay: " + ((end - start).toDouble() / count) + "=====")
+//    }
+//  }
 
 })
