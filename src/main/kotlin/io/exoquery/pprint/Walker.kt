@@ -148,8 +148,9 @@ abstract class Walker {
       (x::class.isData) -> {
         val cls = x::class
         val className = cls.simpleName ?: cls.toString()
-        val productArity = cls.constructors.first().parameters.size
+        val productArity = cls.constructors.firstOrNull()?.parameters?.size ?: 0
 
+        // If there are no constructors it's usually a `data object`
         if (productArity == 0) Tree.Lazy { ctx -> sequenceOf(x.toString()).iterator() }
         // Don't do "a to b" when product has 2 elements since there's a specific Pair/Triple in Kotlin
         //else if(productArity == 2 && Util.isOperator(x.productPrefix)){
