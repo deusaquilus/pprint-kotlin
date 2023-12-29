@@ -13,7 +13,7 @@ fun pprint(
   defaultShowFieldNames: Boolean = true,
   colorLiteral: Attrs = Color.Green,
   colorApplyPrefix: Attrs = Color.Yellow,
-  showGenericForCollections: Boolean = false
+  showGenericForCollections: Boolean = true
 ) = PPrinter(
   defaultWidth,
   defaultHeight,

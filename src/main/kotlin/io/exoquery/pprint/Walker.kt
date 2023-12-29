@@ -102,7 +102,10 @@ abstract class Walker {
       }
 
       // Note: Maybe want to have a configuration to always make it just "Sequence"
-      x is Sequence<*> -> Tree.Apply(x::class.simpleName ?: "Sequence", x.asSequence().map { x -> treeify(x, escapeUnicode, showFieldNames) }.iterator())
+      x is Sequence<*> -> {
+        val name = if (showGenericForCollections) "Sequence" else x::class.simpleName ?: "Map"
+        Tree.Apply(name, x.asSequence().map { x -> treeify(x, escapeUnicode, showFieldNames) }.iterator())
+      }
 
       // Note: Maybe want to have a configuration to always make it just "Iterable"
       x is Iterable<*> -> {
@@ -131,6 +134,8 @@ abstract class Walker {
       }
 
       x is Array<*> -> Tree.Apply("Array", x.asSequence().map {x -> treeify(x, escapeUnicode, showFieldNames)}.iterator())
+
+      x is Sequence<*> -> Tree.Apply("Sequence", x.map {x -> treeify(x, escapeUnicode, showFieldNames)}.iterator())
 
       x is Pair<*, *> -> {
         // We could also do Tree.Infix(treeifySame(x.first), "to", treeifySame(x.second)), so it would be "a to b" not sure if that is better or worse

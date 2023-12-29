@@ -24,7 +24,7 @@ data class PPrinter(
   val defaultShowFieldNames: Boolean = true,
   val colorLiteral: Attrs = FansiColor.Green,
   val colorApplyPrefix: Attrs = FansiColor.Yellow,
-  override val showGenericForCollections: Boolean = false
+  override val showGenericForCollections: Boolean = true
 ): Walker() {
 
   /**

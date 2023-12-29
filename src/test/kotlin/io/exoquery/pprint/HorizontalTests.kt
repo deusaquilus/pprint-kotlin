@@ -4,6 +4,7 @@ import io.kotest.core.spec.style.FunSpec
 
 class HorizontalTests : FunSpec({
   val Check = io.exoquery.pprint.Check(9999)
+  val CheckNonGeneric = io.exoquery.pprint.Check(9999, showGenericForCollections = false)
 
   context("Horizontal"){
     context("primitives"){
@@ -72,7 +73,7 @@ class HorizontalTests : FunSpec({
       test("Null"){
         Check(null, "null")
         Check(null as String?, "null")
-        Check(listOf("look!", null as String?, "hi"), """ArrayList("look!", null, "hi")""")
+        Check(listOf("look!", null as String?, "hi"), """List("look!", null, "hi")""")
       }
       // No either in Kotlin
       // test("Either"){
@@ -108,14 +109,13 @@ class HorizontalTests : FunSpec({
       test("Iterator") { Check(listOf('1', '2', '3'), "List('1', '2', '3')") }
 
       test("Array") { Check(arrayOf(1, 2, 3), "Array(1, 2, 3)") }
-      test("Seq") { Check(listOf(1, 2, 3), "ArrayList(1, 2, 3)") }
-      test("List") { Check(listOf("1", "2", "3"), """ArrayList("1", "2", "3")""") }
+      test("Seq") { Check(listOf(1, 2, 3), "List(1, 2, 3)") }
+      test("List") { Check(listOf("1", "2", "3"), """List("1", "2", "3")""") }
       //test("Vector") { Check(Vector('omg, 'wtf, 'bbq), """Vector('omg, 'wtf, 'bbq)""") }
 
       test("Buffer") { Check(
         mutableListOf("omg", "wtf", "bbq"),
-        """ArrayBuffer('omg, 'wtf, 'bbq)""",
-        """WrappedArray('omg, 'wtf, 'bbq)"""
+        """List("omg", "wtf", "bbq")"""
       ) }
 
 
@@ -131,7 +131,7 @@ class HorizontalTests : FunSpec({
       //test("Traversable") { Check(Traversable('omg, 'wtf, 'bbq), """List('omg, 'wtf, 'bbq)""") }
       //  test("Set") { Check(Set('omg), """Set('omg)""") }
 
-      test("mutableSet") { Check(mutableSetOf("omg", """Set("omg")""", """HashSet("omg")""")) }
+      test("mutableSet") { Check(mutableSetOf("omg"), """Set("omg")""", """HashSet("omg")""") }
       test("collectionSet") { Check(setOf("omg"), """Set("omg")""") }
         test("SortedSet") { Check(
         sortedSetOf("1", "2", "3"),

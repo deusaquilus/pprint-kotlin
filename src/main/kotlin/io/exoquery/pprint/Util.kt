@@ -54,8 +54,8 @@ object Util {
     }
   }
 
-  fun isOperator(ident: String) = {
-    (ident.length > 0) && (when (ident[0]) {
+  fun isOperator(ident: String): Boolean {
+    return (ident.length > 0) && (when (ident[0]) {
       '<' -> true
       '~' -> true
       '!' -> true

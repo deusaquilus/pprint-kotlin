@@ -170,7 +170,7 @@ class VerticalTests : FunSpec({
           listOf()
         ),
         """FooG(
-          |  Vector(
+          |  List(
           |    FooG(
           |      Array(
           |        Foo(123, List())
@@ -233,170 +233,170 @@ class VerticalTests : FunSpec({
 
 
 
-//  context("Truncation"){
-//    context("longNoTruncation"){
-//      val Check = io.exoquery.pprint.Check()
-//      test { Check("a" * 10000,"\""+"a" * 10000+"\"") }
-//      test { Check(
-//        List.fill(30)(100),
-//        """List(
-//          |  100,
-//          |  100,
-//          |  100,
-//          |  100,
-//          |  100,
-//          |  100,
-//          |  100,
-//          |  100,
-//          |  100,
-//          |  100,
-//          |  100,
-//          |  100,
-//          |  100,
-//          |  100,
-//          |  100,
-//          |  100,
-//          |  100,
-//          |  100,
-//          |  100,
-//          |  100,
-//          |  100,
-//          |  100,
-//          |  100,
-//          |  100,
-//          |  100,
-//          |  100,
-//          |  100,
-//          |  100,
-//          |  100,
-//          |  100
-//          |)""".trimMargin()
-//      ) }
-//    }
-//
-//    test("shortNonTruncated"){
-//      val Check = io.exoquery.pprint.Check(height = 15)
-//      test { Check("a"*1000, "\"" + "a"*1000 + "\"") }
-//      test { Check(List(1,2,3,4), "List(1, 2, 3, 4)") }
-//      test { Check(
-//        List.fill(13)("asdfghjklqwertz"),
-//        """List(
-//          |  "asdfghjklqwertz",
-//          |  "asdfghjklqwertz",
-//          |  "asdfghjklqwertz",
-//          |  "asdfghjklqwertz",
-//          |  "asdfghjklqwertz",
-//          |  "asdfghjklqwertz",
-//          |  "asdfghjklqwertz",
-//          |  "asdfghjklqwertz",
-//          |  "asdfghjklqwertz",
-//          |  "asdfghjklqwertz",
-//          |  "asdfghjklqwertz",
-//          |  "asdfghjklqwertz",
-//          |  "asdfghjklqwertz"
-//          |)
-//        """.trimMargin()
-//      ) }
-//    }
-//
-//    test("shortLinesTruncated"){
-//      val Check = io.exoquery.pprint.Check(height = 15)
-//      test { Check(
-//        List.fill(15)("foobarbaz"),
-//        """List(
-//          |  "foobarbaz",
-//          |  "foobarbaz",
-//          |  "foobarbaz",
-//          |  "foobarbaz",
-//          |  "foobarbaz",
-//          |  "foobarbaz",
-//          |  "foobarbaz",
-//          |  "foobarbaz",
-//          |  "foobarbaz",
-//          |  "foobarbaz",
-//          |  "foobarbaz",
-//          |  "foobarbaz",
-//          |  "foobarbaz",
-//          |...""".trimMargin()
-//      ) }
-//      test { Check(
-//        List.fill(150)("foobarbaz"),
-//        """List(
-//          |  "foobarbaz",
-//          |  "foobarbaz",
-//          |  "foobarbaz",
-//          |  "foobarbaz",
-//          |  "foobarbaz",
-//          |  "foobarbaz",
-//          |  "foobarbaz",
-//          |  "foobarbaz",
-//          |  "foobarbaz",
-//          |  "foobarbaz",
-//          |  "foobarbaz",
-//          |  "foobarbaz",
-//          |  "foobarbaz",
-//          |...""".trimMargin()
-//      ) }
-//    }
-//
-//    test("longLineTruncated"){
-//      // These print out one long line, but at the width that the
-//      // pretty-printer is configured to, it (including any trailing ...)
-//      // wraps to fit within the desired width and height
-//      test{
-//        val Check = io.exoquery.pprint.Check(width = 5, height = 3)
-//        Check(
-//          "a" * 13,
-//          "\"aaaa" +
-//            "aaaaa" +
-//            "aaaa\""
-//        )
-//      }
-//      test{
-//        val Check = io.exoquery.pprint.Check(width = 5, height = 3)
-//        Check(
-//          "a" * 1000,
-//          "\"aaaa" +
-//            "aaaaa" +
-//            "..."
-//        )
-//      }
-//      test{
-//        val Check = io.exoquery.pprint.Check(width = 60, height = 5)
-//        Check(
-//          "a" * 1000,
-//          "\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"+
-//            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"+
-//            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"+
-//            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"+
-//            "..."
-//        )
-//      }
-//    }
-//
-//    test("stream"){
-//      val Check = io.exoquery.pprint.Check(height = 5)
-//      Check(
-//        Stream.continually("foo"),
-//        """Stream(
-//          |  "foo",
-//          |  "foo",
-//          |  "foo",
-//          |...
-//        """.trimMargin()
-//      )
-//    }
-//  }
-//
-//  test("wrappedLines"){
-//    val Check = io.exoquery.pprint.Check(width = 8, height = 5)
-//
-//    Check(
-//      "1234567890\n"*10,
-//      "\"\"\"1234567890\n1234567890\n..."
-//    )
-//    // The result looks like 10 wide 3 deep, but because of the wrapping
-//    // (maxWidth = 8) it is actually 8 wide and 5 deep.
-//  }
+  context("Truncation"){
+    context("longNoTruncation"){
+      val Check = io.exoquery.pprint.Check()
+      test("10000") { Check("a".repeat(10000),"\""+"a".repeat(10000) + "\"") }
+      test("List(100...30x...100)") { Check(
+        Array(30, { 100 }).toList(),
+        """List(
+          |  100,
+          |  100,
+          |  100,
+          |  100,
+          |  100,
+          |  100,
+          |  100,
+          |  100,
+          |  100,
+          |  100,
+          |  100,
+          |  100,
+          |  100,
+          |  100,
+          |  100,
+          |  100,
+          |  100,
+          |  100,
+          |  100,
+          |  100,
+          |  100,
+          |  100,
+          |  100,
+          |  100,
+          |  100,
+          |  100,
+          |  100,
+          |  100,
+          |  100,
+          |  100
+          |)""".trimMargin()
+      ) }
+    }
+
+    context("shortNonTruncated"){
+      val Check = io.exoquery.pprint.Check(height = 15)
+      test("a...1000x...a") { Check("a".repeat(1000), "\"" + "a".repeat(1000) + "\"") }
+      test("List(1,2,3,4)") { Check(listOf(1,2,3,4), "List(1, 2, 3, 4)") }
+      test("""List("asdfghjklqwertz" * 13)""") { Check(
+        Array(13, {"asdfghjklqwertz"}).toList(),
+        """List(
+          |  "asdfghjklqwertz",
+          |  "asdfghjklqwertz",
+          |  "asdfghjklqwertz",
+          |  "asdfghjklqwertz",
+          |  "asdfghjklqwertz",
+          |  "asdfghjklqwertz",
+          |  "asdfghjklqwertz",
+          |  "asdfghjklqwertz",
+          |  "asdfghjklqwertz",
+          |  "asdfghjklqwertz",
+          |  "asdfghjklqwertz",
+          |  "asdfghjklqwertz",
+          |  "asdfghjklqwertz"
+          |)
+        """.trimMargin()
+      ) }
+    }
+
+    context("shortLinesTruncated"){
+      val Check = io.exoquery.pprint.Check(height = 15)
+      test("""List(""foobarbaz" * 13) - truncated""") { Check(
+        Array(15, { "foobarbaz" }).toList(),
+        """List(
+          |  "foobarbaz",
+          |  "foobarbaz",
+          |  "foobarbaz",
+          |  "foobarbaz",
+          |  "foobarbaz",
+          |  "foobarbaz",
+          |  "foobarbaz",
+          |  "foobarbaz",
+          |  "foobarbaz",
+          |  "foobarbaz",
+          |  "foobarbaz",
+          |  "foobarbaz",
+          |  "foobarbaz",
+          |...""".trimMargin()
+      ) }
+      test("""List(""foobarbaz" * 150) - truncated""") { Check(
+        Array(150, { "foobarbaz" }).toList(),
+        """List(
+          |  "foobarbaz",
+          |  "foobarbaz",
+          |  "foobarbaz",
+          |  "foobarbaz",
+          |  "foobarbaz",
+          |  "foobarbaz",
+          |  "foobarbaz",
+          |  "foobarbaz",
+          |  "foobarbaz",
+          |  "foobarbaz",
+          |  "foobarbaz",
+          |  "foobarbaz",
+          |  "foobarbaz",
+          |...""".trimMargin()
+      ) }
+    }
+
+    context("longLineTruncated"){
+      // These print out one long line, but at the width that the
+      // pretty-printer is configured to, it (including any trailing ...)
+      // wraps to fit within the desired width and height
+      test("a*13 - split width") {
+        val Check = io.exoquery.pprint.Check(width = 5, height = 3)
+        Check(
+          "a".repeat(13),
+          "\"aaaa" +
+            "aaaaa" +
+            "aaaa\""
+        )
+      }
+      test("a*1000 - split width + truncate") {
+        val Check = io.exoquery.pprint.Check(width = 5, height = 3)
+        Check(
+          "a".repeat(1000),
+          "\"aaaa" +
+            "aaaaa" +
+            "..."
+        )
+      }
+      test("a*1000 - split width + truncate - large width") {
+        val Check = io.exoquery.pprint.Check(width = 60, height = 5)
+        Check(
+          "a".repeat(1000),
+          "\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"+
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"+
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"+
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"+
+            "..."
+        )
+      }
+    }
+
+    test("infinite sequence"){
+      val Check = io.exoquery.pprint.Check(height = 5)
+      Check.invoke(
+        generateSequence { "foo" },
+        """Sequence(
+          |  "foo",
+          |  "foo",
+          |  "foo",
+          |...
+        """.trimMargin()
+      )
+    }
+  }
+
+  test("wrappedLines"){
+    val Check = io.exoquery.pprint.Check(width = 8, height = 5)
+
+    Check(
+      "1234567890\n".repeat(10),
+      "\"\"\"1234567890\n1234567890\n..."
+    )
+    // The result looks like 10 wide 3 deep, but because of the wrapping
+    // (maxWidth = 8) it is actually 8 wide and 5 deep.
+  }
 
 })

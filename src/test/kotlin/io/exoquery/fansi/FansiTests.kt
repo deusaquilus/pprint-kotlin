@@ -2,6 +2,7 @@ package io.exoquery.fansi
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 
 
 class FansiTests : FunSpec({
@@ -386,9 +387,13 @@ class FansiTests : FunSpec({
           // If I ask it to sanitize, the escape character is gone but the
           // rest of each escape sequence remains
           val sanitized = Str(s, errorMode = ErrorMode.Sanitize)
-          assert(sanitized.plainText == ("Hello" + msg + "World"))
+          // Note assert(a == b) tests are generally bad because in the case of failure
+          // they don't print expected vs actual expressions. Should eventually replace all
+          // of them with `shouldBe` but not doing that until the port of the library is complete.
+          sanitized.plainText shouldBe ("Hello" + msg + "World")
+
           val sanitized2 = Str.Sanitize(s)
-          assert(sanitized2.plainText == ("Hello" + msg + "World"))
+          sanitized2.plainText shouldBe ("Hello" + msg + "World")
 
           // If I ask it to strip, everything is gone
           val stripped = Str(s, errorMode = ErrorMode.Strip)
@@ -414,7 +419,7 @@ class FansiTests : FunSpec({
         test("auxPortOn") { check("Hello\u001b[5iWorld", "[5i") }
         test("auxPortOff") { check("Hello\u001b[4iWorld", "[4i") }
         test("deviceStatusReport") { check("Hello\u001b[6nWorld", "[6n") }
-        test("saveCursor") { check("Hello\u001b[sWorld", "[") }
+        test("saveCursor") { check("Hello\u001b[sWorld", "[s") }
         test("restoreCursor") { check("Hello\u001b[uWorld", "[u") }
       }
       test("outOfBounds"){

@@ -24,7 +24,7 @@ class Truncated(
     var previousSlashN = false
     var previousSlashR = false
 
-    fun handleNormalChar(char: Char) = {
+    fun handleNormalChar(char: Char) {
       previousSlashN = false
       previousSlashR = false
       if (char == '\n' && previousSlashR || char == '\r' && previousSlashN) {

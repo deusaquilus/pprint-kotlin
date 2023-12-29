@@ -4,7 +4,7 @@ import io.kotest.core.spec.style.FunSpec
 
 class UnitTests : FunSpec({
   test("escapeChar"){
-    fun check(c: Char, expected: String, unicode: Boolean = true) = {
+    fun check(c: Char, expected: String, unicode: Boolean = true) {
       val escaped = Util.escapeChar(c, StringBuilder(), unicode).toString()
       assert(escaped == expected)
     }
@@ -42,7 +42,7 @@ class UnitTests : FunSpec({
       iter: Iterator<Iterator<Int>>,
       joiner: () -> Iterator<Int>,
       expected: List<Int>
-    ) = {
+    ) {
       val joined = Util.ConcatIterator(
         iter,
         { joiner() }

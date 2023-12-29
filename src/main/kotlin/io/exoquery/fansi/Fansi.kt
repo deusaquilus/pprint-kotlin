@@ -325,6 +325,12 @@ class Str private constructor(private val chars: Array<Char>, private val colors
     fun join(args: Iterable<Str>): Str =
       join(args, Str(""))
 
+    fun join(args: Iterator<Str>, sep: String): Str =
+      join(args.asSequence().toList(), sep.toStr())
+
+    fun join(args: Iterator<Str>): Str =
+      join(args.asSequence().toList(), Str(""))
+
     fun join(args: Iterable<Str>, sep: Str): Str {
       val length = args.map { it.length + sep.length }.sum() - sep.length
       val chars = Array<Char>(length, {Char(0)})
@@ -620,15 +626,9 @@ data class SourceName(val value: String)
 sealed class Category(val offset: Int, val width: Int) {
   val catName: SourceName = SourceName("???")
 
-  val mask get(): Int = {
-    val out = ((1 shl width) - 1) shl offset
-    out
-  }()
+  val mask get(): Int =
+    ((1 shl width) - 1) shl offset
 
-  fun mask(): Int {
-    val out = ((1 shl width) - 1) shl offset
-    return out
-  }
 
   abstract val all: List<Attr>
 
