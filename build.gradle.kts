@@ -19,7 +19,7 @@ nexusPublishing {
 apply(plugin = "io.github.gradle-nexus.publish-plugin")
 
 group = "io.exoquery"
-version = "1.0"
+version = "1.0.0"
 
 apply(plugin = "kotlin")
 apply(plugin = "maven-publish")
@@ -84,7 +84,7 @@ allprojects {
                 pom {
                     name.set("decomat")
                     description.set("DecoMat - Deconstructive Pattern Matching for Kotlin")
-                    url.set("https://github.com/exoquery/decomat")
+                    url.set("https://github.com/deusaquilus/pprint-kotlin")
 
                     licenses {
                         license {
