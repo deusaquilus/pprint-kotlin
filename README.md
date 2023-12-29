@@ -11,7 +11,7 @@ Add the following to your build.gradle.kts:
 implementation("io.exoquery:pprint-kotlin:1.0.0")
 ```
 
-The use the library like this: 
+Then use the library like this: 
 ```kotlin
 import io.exoquery.pprint
 
@@ -96,7 +96,9 @@ var i = 0
 val p = SequenceHolder(generateSequence { "foo-${i++}" })
 println(pprint(p, defaultHeight = 10))
 ```
-![Screenshot from 2023-12-29 15-38-47](https://github.com/deusaquilus/pprint-kotlin/assets/1369480/9026f8ca-479e-442d-966b-0c1f1f887986)
+
+## <img src="https://github.com/deusaquilus/pprint-kotlin/assets/1369480/9026f8ca-479e-442d-966b-0c1f1f887986" width=50% height=50%>
+
 
 
 PPrint is able to print this infinite sequence without stack-overflowing or running out of memory
@@ -116,6 +118,17 @@ val p = Person(Name("Joe", "Bloggs"), 42)
 // Use Black & White Printing
 println(pprint(p).plainText)
 ```
+
+## Removing Field Names
+
+By default pprint will print the field names of data classes. You can remove these by using `showFieldNames = false`:
+
+```kotlin
+val p = Person(Name("Joe", "Bloggs"), 42)
+println(pprint(p, showFieldNames = false))
+```
+
+For larger ADTs this dramatically reduces the amount of output and often improves the readability.
 
 ## Extending PPrint
 
