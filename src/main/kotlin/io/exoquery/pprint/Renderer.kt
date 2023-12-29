@@ -1,8 +1,7 @@
-package io.deusaquilus.pprint
+package io.exoquery.pprint
 
-import io.deusaquilus.fansi.Attrs
-import io.deusaquilus.fansi.Str
-import io.deusaquilus.fansi.toStr
+import io.exoquery.fansi.Attrs
+import io.exoquery.fansi.Str
 
 //fun <T> Sequence<T>.hasNext(): Boolean = this.iterator().hasNext()
 //fun <T> Sequence<T>.next(): T = this.iterator().next()

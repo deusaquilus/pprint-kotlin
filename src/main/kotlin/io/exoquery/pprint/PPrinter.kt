@@ -1,9 +1,8 @@
-package io.deusaquilus.pprint
+package io.exoquery.pprint
 
-import io.deusaquilus.fansi.Attrs
-import io.deusaquilus.fansi.Color
-import io.deusaquilus.fansi.Str
-import java.io.PrintStream
+import io.exoquery.fansi.Attrs
+import io.exoquery.fansi.Color
+import io.exoquery.fansi.Str
 
 /**
   *

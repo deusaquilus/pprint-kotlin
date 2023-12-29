@@ -1,7 +1,7 @@
-package io.deusaquilus.pprint
+package io.exoquery.pprint
 
-import io.deusaquilus.fansi.Str
-import io.deusaquilus.fansi.toStr
+import io.exoquery.fansi.Str
+import io.exoquery.fansi.toStr
 
 /**
  * Wraps an input iterator of colored [<Str>]s, and produces the same

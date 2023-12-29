@@ -1,4 +1,4 @@
-package io.deusaquilus.fansi
+package io.exoquery.fansi
 
 fun main() {
 

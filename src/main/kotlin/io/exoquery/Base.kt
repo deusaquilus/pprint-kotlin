@@ -1,8 +1,8 @@
-package io.deusaquilus
+package io.exoquery
 
-import io.deusaquilus.fansi.Attrs
-import io.deusaquilus.fansi.Color
-import io.deusaquilus.pprint.PPrinter
+import io.exoquery.fansi.Attrs
+import io.exoquery.fansi.Color
+import io.exoquery.pprint.PPrinter
 
 fun pprint(
   value: Any?,

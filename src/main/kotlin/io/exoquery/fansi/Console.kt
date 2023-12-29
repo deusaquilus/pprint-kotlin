@@ -1,4 +1,4 @@
-package io.deusaquilus.fansi
+package io.exoquery.fansi
 
 object Console {
   final val BLACK = "\u001B[30m"

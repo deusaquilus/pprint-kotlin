@@ -1,4 +1,4 @@
-package io.deusaquilus.fansi
+package io.exoquery.fansi
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec

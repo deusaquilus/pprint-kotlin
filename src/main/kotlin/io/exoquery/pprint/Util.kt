@@ -1,4 +1,4 @@
-package io.deusaquilus.pprint
+package io.exoquery.pprint
 
 object Util {
 

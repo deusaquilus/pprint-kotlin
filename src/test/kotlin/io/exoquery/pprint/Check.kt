@@ -1,6 +1,6 @@
-package io.deusaquilus.pprint
+package io.exoquery.pprint
 
-import io.deusaquilus.fansi.Str
+import io.exoquery.fansi.Str
 
 class Check(val width: Int = 100, val height: Int = 99999, val renderTwice: Boolean = false, val fields: Boolean = false){
   fun invoke(t: Any, vararg expected: String) = {

@@ -1,10 +1,8 @@
-package io.deusaquilus.pprint
+package io.exoquery.pprint
 
-import io.deusaquilus.fansi.Attrs
+import io.exoquery.fansi.Attrs
 import scala.collection.mutable.TreeMap
 import kotlin.reflect.full.allSuperclasses
-import kotlin.reflect.full.allSupertypes
-import kotlin.reflect.full.superclasses
 
 /**
  * A lazy AST representing pretty-printable text. Models `foo(a, b)`
