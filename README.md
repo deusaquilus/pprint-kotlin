@@ -22,6 +22,7 @@ println(pprint(p))
 ```
 
 It will print the following beautiful output:
+![Screenshot from 2023-12-29 15-20-52](https://github.com/deusaquilus/pprint-kotlin/assets/1369480/ce866664-7959-46fb-a8c8-9a636a315281)
 
 
 
@@ -32,9 +33,9 @@ I will document them here over time however for now please refer to the Scala do
 
 ## Nested Data and Complex Collections
 
-PPrint excells at printing nested data structures and complex collections.
+PPrint excels at printing nested data structures and complex collections.
 
-For example lists embedded in objects:
+For example, lists embedded in objects:
 ```kotlin
 data class Address(val street: String, val zip: Int)
 data class Customer(val name: Name, val addresses: List<Address>)
@@ -42,6 +43,8 @@ data class Customer(val name: Name, val addresses: List<Address>)
 val p = Customer(Name("Joe", "Bloggs"), listOf(Address("foo", 123), Address("bar", 456), Address("baz", 789)))
 println(pprint(p))
 ```
+![Screenshot from 2023-12-29 15-23-12](https://github.com/deusaquilus/pprint-kotlin/assets/1369480/3c7b7e18-d246-451c-ae3d-bfcc102ccefc)
+
 
 Maps embedded in objects:
 ```kotlin
@@ -55,6 +58,8 @@ val p =
   )
 println(pprint(p))
 ```
+![Screenshot from 2023-12-29 15-25-54](https://github.com/deusaquilus/pprint-kotlin/assets/1369480/813afad2-1cfa-4629-b2a8-253ac47254a4)
+
 
 Lists embedded in maps imbedded in objects:
 ```kotlin
@@ -72,6 +77,9 @@ val p =
   )
 println(pprint(p))
 ```
+![Screenshot from 2023-12-29 15-32-13](https://github.com/deusaquilus/pprint-kotlin/assets/1369480/4f3aeb69-315f-4fd7-b831-c568c6daa26c)
+
+
 
 ## Infinite Sequences
 
@@ -84,6 +92,8 @@ var i = 0
 val p = SequenceHolder(generateSequence { "foo-${i++}" })
 println(pprint(p, defaultHeight = 10))
 ```
+![Screenshot from 2023-12-29 15-38-47](https://github.com/deusaquilus/pprint-kotlin/assets/1369480/9026f8ca-479e-442d-966b-0c1f1f887986)
+
 
 PPrint is able to print this infinite sequence without stack-overflowing or running out of memory
 because it is highly lazy. It only evaluates the sequence as it is printing it,
