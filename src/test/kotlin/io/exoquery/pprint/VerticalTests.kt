@@ -4,10 +4,6 @@ import io.kotest.core.spec.style.FunSpec
 
 class VerticalTests : FunSpec({
 
-  fun <T> List(vararg values: T) = listOf(*values)
-  fun <T> Seq(vararg values: T) = listOf(*values)
-  fun <K, V> Map(vararg values: Pair<K, V>) = mapOf(*values)
-
   context("Vertical"){
     val Check = io.exoquery.pprint.Check(width = 25, height = 99999, renderTwice = true, fields = false)
     context("singleNested"){
@@ -21,15 +17,15 @@ class VerticalTests : FunSpec({
         """.trimMargin()
       ) }
       test("List on one line") {Check(
-        List("12", "12", "12"),
+        listOf("12", "12", "12"),
         """List("12", "12", "12")"""
       ) }
       test("Larger List on one line") { Check(
-        List("123", "123", "123"),
+        listOf("123", "123", "123"),
         """List("123", "123", "123")"""
       ) }
       test("Uneven width List on multiple lines") { Check(
-        List("1234", "123", "123"),
+        listOf("1234", "123", "123"),
         """List(
           |  "1234",
           |  "123",
@@ -37,11 +33,11 @@ class VerticalTests : FunSpec({
           |)""".trimMargin()
       ) }
       test("Map on one line") { Check(
-        Map(1 to 2, 3 to 4),
+        mapOf(1 to 2, 3 to 4),
         """Map(1 -> 2, 3 -> 4)"""
       ) }
       test("Maps to lists") { Check(
-        Map(List(1, 2) to List(3, 4), List(5, 6) to List(7, 8)),
+        mapOf(listOf(1, 2) to listOf(3, 4), listOf(5, 6) to listOf(7, 8)),
         """Map(
           |  List(1, 2) -> List(3, 4),
           |  List(5, 6) -> List(7, 8)
@@ -49,9 +45,9 @@ class VerticalTests : FunSpec({
       ) }
 
       test("Multi line complex maps") { Check(
-        Map(
-          List(123, 456, 789, 123, 456) to List(3, 4, 3, 4),
-          List(5, 6) to List(7, 8)
+        mapOf(
+          listOf(123, 456, 789, 123, 456) to listOf(3, 4, 3, 4),
+          listOf(5, 6) to listOf(7, 8)
         ),
         """Map(
           |  List(
@@ -66,9 +62,9 @@ class VerticalTests : FunSpec({
       ) }
 
       test("Maps to lists") { Check(
-        Map(
-          List(5, 6) to List(7, 8),
-          List(123, 456, 789, 123, 456) to List(123, 456, 789, 123, 456)
+        mapOf(
+          listOf(5, 6) to listOf(7, 8),
+          listOf(123, 456, 789, 123, 456) to listOf(123, 456, 789, 123, 456)
         ),
         """Map(
           |  List(5, 6) -> List(7, 8),
@@ -89,7 +85,7 @@ class VerticalTests : FunSpec({
       ) }
 
       test("Muti line int list") { Check(
-        List("12345", "12345", "12345"),
+        listOf("12345", "12345", "12345"),
         """List(
           |  "12345",
           |  "12345",
@@ -97,7 +93,7 @@ class VerticalTests : FunSpec({
           |)""".trimMargin()
       ) }
       test("Complex nested object") { Check(
-        Foo(123, Seq("hello world", "moo")),
+        Foo(123, listOf("hello world", "moo")),
         """Foo(
           |  123,
           |  List(
@@ -107,7 +103,7 @@ class VerticalTests : FunSpec({
           |)""".trimMargin()
       ) }
       test("Complex nested object one line") { Check(
-        Foo(123, Seq("moo")),
+        Foo(123, listOf("moo")),
         """Foo(123, List("moo"))""".trimMargin()
       ) }
 
@@ -115,7 +111,7 @@ class VerticalTests : FunSpec({
     context("doubleNested"){
 
       test("Nested sequence") { Check(
-        List(Seq("omg", "omg"), Seq("mgg", "mgg"), Seq("ggx", "ggx")),
+        listOf(listOf("omg", "omg"), listOf("mgg", "mgg"), listOf("ggx", "ggx")),
         """List(
           |  List("omg", "omg"),
           |  List("mgg", "mgg"),
@@ -123,7 +119,7 @@ class VerticalTests : FunSpec({
           |)""".trimMargin()
       ) }
       test("Deeper Nested sequence") { Check(
-        List(Seq("omg", "omg", "omg", "omg"), Seq("mgg", "mgg"), Seq("ggx", "ggx")),
+        listOf(listOf("omg", "omg", "omg", "omg"), listOf("mgg", "mgg"), listOf("ggx", "ggx")),
         """List(
           |  List(
           |    "omg",
@@ -136,14 +132,14 @@ class VerticalTests : FunSpec({
           |)""".trimMargin()
       ) }
       test("Even Deeper Nested sequence") { Check(
-        List(
-          Seq(
-            Seq("mgg", "mgg", "lols"),
-            Seq("mgg", "mgg")
+        listOf(
+          listOf(
+            listOf("mgg", "mgg", "lols"),
+            listOf("mgg", "mgg")
           ),
-          Seq(
-            Seq("ggx", "ggx"),
-            Seq("ggx", "ggx", "wtfx")
+          listOf(
+            listOf("ggx", "ggx"),
+            listOf("ggx", "ggx", "wtfx")
           )
         ),
         """List(
@@ -166,7 +162,9 @@ class VerticalTests : FunSpec({
           |)""".trimMargin()
       ) }
       test("Nested sequence with collections") { Check(
-        FooG(Vector(FooG(Array(Foo(123, Nil)), Nil)), Nil),
+        FooG(listOf(FooG(arrayOf(Foo(123, listOf())), listOf())),
+          listOf()
+        ),
         """FooG(
           |  Vector(
           |    FooG(
@@ -181,7 +179,7 @@ class VerticalTests : FunSpec({
         """.trimMargin()
       ) }
       test("More nested sequence with collections") { Check(
-        FooG(FooG(Seq(Foo(3, Nil)), Nil), Nil),
+        FooG(FooG(listOf(Foo(3, listOf())), listOf()), listOf()),
         """FooG(
           |  FooG(
           |    List(Foo(3, List())),
@@ -221,9 +219,9 @@ class VerticalTests : FunSpec({
 //    val cReset = Color.Reset.escape
 //    test { count(PPrinter.Color.tokenize(123), GREEN -> 1, cReset -> 1) }
 //    test { count(PPrinter.Color.tokenize(""), GREEN -> 1, cReset -> 1) }
-//    test { count(PPrinter.Color.tokenize(Seq(1, 2, 3)), GREEN -> 3, YELLOW -> 1, cReset -> 4) }
+//    test { count(PPrinter.Color.tokenize(listOf(1, 2, 3)), GREEN -> 3, YELLOW -> 1, cReset -> 4) }
 //    test { count(
-//      PPrinter.Color.tokenize(Map(1 -> Nil, 2 -> Seq(" "), 3 -> Seq("   "))),
+//      PPrinter.Color.tokenize(Map(1 -> Nil, 2 -> listOf(" "), 3 -> listOf("   "))),
 //      GREEN -> 5, YELLOW -> 4, cReset -> 9
 //    ) }
 //  }
