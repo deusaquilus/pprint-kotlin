@@ -1,6 +1,6 @@
 # PPrint for Kotlin
 
-This is a port of Li Haoyi's excellent Scala pretty-printing library into Kotlin (pprint)[https://github.com/com-lihaoyi/PPrint].
+This is a port of Li Haoyi's excellent Scala pretty-printing library into Kotlin [print](https://github.com/com-lihaoyi/PPrint).
 (As well as Li Haoyi's excellent Ansi-Formatting library Fansi!)
 
 ## Usage
