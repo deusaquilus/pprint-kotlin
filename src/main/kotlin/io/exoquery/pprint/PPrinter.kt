@@ -1,7 +1,7 @@
 package io.exoquery.pprint
 
 import io.exoquery.fansi.Attrs
-import io.exoquery.fansi.Color
+import io.exoquery.fansi.Color as FansiColor
 import io.exoquery.fansi.Str
 
 /**
@@ -22,8 +22,8 @@ data class PPrinter(
   val defaultIndent: Int = 2,
   val defaultEscapeUnicode: Boolean = false,
   val defaultShowFieldNames: Boolean = true,
-  val colorLiteral: Attrs = Color.Green,
-  val colorApplyPrefix: Attrs = Color.Yellow,
+  val colorLiteral: Attrs = FansiColor.Green,
+  val colorApplyPrefix: Attrs = FansiColor.Yellow,
   override val showGenericForCollections: Boolean = false
 ): Walker() {
 
@@ -102,7 +102,7 @@ data class PPrinter(
   }
 
   companion object {
-    //object Color: PPrinter
+    val Color = PPrinter()
     val BlackWhite = PPrinter(
       colorLiteral = Attrs.Empty,
       colorApplyPrefix = Attrs.Empty

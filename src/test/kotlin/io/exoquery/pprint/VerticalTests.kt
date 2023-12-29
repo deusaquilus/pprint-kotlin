@@ -1,5 +1,9 @@
 package io.exoquery.pprint
 
+import io.exoquery.fansi.Color
+import io.exoquery.fansi.Console.GREEN
+import io.exoquery.fansi.Console.YELLOW
+import io.exoquery.fansi.Str
 import io.kotest.core.spec.style.FunSpec
 
 class VerticalTests : FunSpec({
@@ -196,35 +200,38 @@ class VerticalTests : FunSpec({
     Check(Nested.ODef.Foo(2, "ba"), "Foo(2, \"ba\")")
     Check(Nested.CDef.Foo(2, "ba"), "Foo(2, \"ba\")")
   }
-//  test("Color"){
-//    fun count(haystack: Iterator<Str>, needles: (String, Int)*) {
-//      val str = haystack.map(_.render).mkString
-//      for ((needle, expected) <- needles){
-//        val count = countSubstring(str, needle)
-//
-//        assert(count == expected)
-//      }
-//    }
 
-//    fun countSubstring(str1:String, str2:String):Int={
-//      @tailrec fun count(pos:Int, c:Int):Int={
-//        val idx=str1 indexOf(str2, pos)
-//        if(idx == -1) c else count(idx+str2.size, c+1)
-//      }
-//      count(0,0)
-//    }
+  context("Color"){
+    fun countSubstring(str1:String, str2:String):Int {
+      //@tailrec
+      fun count(pos:Int, c:Int):Int {
+        val idx=str1.indexOf(str2, pos)
+        return if(idx == -1) c else count(idx+str2.length, c+1)
+      }
+      return count(0,0)
+    }
 
-  // Need to find some way to make this import work
-//    import Console._
-//    val cReset = Color.Reset.escape
-//    test { count(PPrinter.Color.tokenize(123), GREEN -> 1, cReset -> 1) }
-//    test { count(PPrinter.Color.tokenize(""), GREEN -> 1, cReset -> 1) }
-//    test { count(PPrinter.Color.tokenize(listOf(1, 2, 3)), GREEN -> 3, YELLOW -> 1, cReset -> 4) }
-//    test { count(
-//      PPrinter.Color.tokenize(Map(1 -> Nil, 2 -> listOf(" "), 3 -> listOf("   "))),
-//      GREEN -> 5, YELLOW -> 4, cReset -> 9
-//    ) }
-//  }
+    fun count(haystack: Iterator<Str>, vararg needles: Pair<String, Int>) {
+      val str = haystack.asSequence().map { it.render() }.joinToString("")
+      for ((needle, expected) in needles){
+        val count = countSubstring(str, needle)
+
+        assert(count == expected)
+      }
+    }
+
+    // Need to find some way to make this import work
+    val cReset = Color.Reset.escape
+    test("Tokenize 123") { count(PPrinter.Color.tokenize(123), GREEN to 1, cReset to 1) }
+    test("Tokenize Quotes") { count(PPrinter.Color.tokenize(""), GREEN to 1, cReset to 1) }
+    test("Tokenize listOf(1, 2, 3)") { count(PPrinter.Color.tokenize(listOf(1, 2, 3)), GREEN to 3, YELLOW to 1, cReset to 4) }
+    test("Tokenize complex map") { count(
+      PPrinter.Color.tokenize(mapOf(1 to listOf(), 2 to listOf(" "), 3 to listOf("   "))),
+      GREEN to 5, YELLOW to 4, cReset to 9
+    ) }
+  }
+
+
 
 //  context("Truncation"){
 //    context("longNoTruncation"){
