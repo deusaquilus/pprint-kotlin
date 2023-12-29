@@ -11,7 +11,7 @@ sealed interface Tree {
   /**
    * Foo(aa, bbb, cccc)
    */
-  data class Apply(val prefix: String, val body: Sequence<Tree>): Tree
+  data class Apply(val prefix: String, val body: Iterator<Tree>): Tree
 
   /**
    * LHS op RHS
@@ -33,7 +33,7 @@ sealed interface Tree {
   /**
    * xyz
    */
-  data class Lazy(val body0: (Ctx) -> Sequence<String>): Tree
+  data class Lazy(val body0: (Ctx) -> Iterator<String>): Tree
 
   data class Ctx(
     val width: Int,
@@ -52,6 +52,7 @@ abstract class Walker {
   // fun additionalHandlers: PartialFunction<Any, Tree>
 
   fun treeify(x: Any?, escapeUnicode: Boolean, showFieldNames: Boolean): Tree {
+    fun treeifySame(x: Any?) = treeify(x, escapeUnicode, showFieldNames)
     return when {
 
       x == null -> Tree.Literal("null")
@@ -81,15 +82,15 @@ abstract class Walker {
         Tree.Apply(
           x::class.simpleName ?: "Map",
           x.asSequence().flatMap { (k, v) ->
-            sequenceOf(Tree.Infix(treeify(k, escapeUnicode, showFieldNames), "->", treeify(v, escapeUnicode, showFieldNames)))
-          }
+            listOf(Tree.Infix(treeify(k, escapeUnicode, showFieldNames), "->", treeify(v, escapeUnicode, showFieldNames)))
+          }.iterator()
         )
 
-      // TODO Maybe want to have a configuration to always make it just "Sequence"
-      x is Sequence<*> -> Tree.Apply(x::class.simpleName ?: "Sequence", x.asSequence().map { x -> treeify(x, escapeUnicode, showFieldNames) })
+      // Note: Maybe want to have a configuration to always make it just "Sequence"
+      x is Sequence<*> -> Tree.Apply(x::class.simpleName ?: "Sequence", x.asSequence().map { x -> treeify(x, escapeUnicode, showFieldNames) }.iterator())
 
-      // TODO Maybe want to have a configuration to always make it just "Iterable"
-      x is Iterable<*> -> Tree.Apply(x::class.simpleName ?: "Iterable", x.asSequence().map { x -> treeify(x, escapeUnicode, showFieldNames) })
+      // Note: Maybe want to have a configuration to always make it just "Iterable"
+      x is Iterable<*> -> Tree.Apply(x::class.simpleName ?: "Iterable", x.asSequence().map { x -> treeify(x, escapeUnicode, showFieldNames) }.iterator())
 
       // No None in kotlin
       //case None -> Tree.Literal("None")
@@ -101,17 +102,22 @@ abstract class Walker {
           Tree.Literal("non-empty iterator")
       }
 
-      x is Array<*> -> Tree.Apply("Array", x.asSequence().map {x -> treeify(x, escapeUnicode, showFieldNames)})
+      x is Array<*> -> Tree.Apply("Array", x.asSequence().map {x -> treeify(x, escapeUnicode, showFieldNames)}.iterator())
 
-      // TODO x is Pair
-      // TODO x is Triple
+      x is Pair<*, *> -> {
+        // We could also do Tree.Infix(treeifySame(x.first), "to", treeifySame(x.second)), so it would be "a to b" not sure if that is better or worse
+        Tree.Apply("Pair", sequenceOf(treeifySame(x.first), treeifySame(x.second)).iterator())
+      }
+
+      x is Triple<*, *, *> ->
+        Tree.Apply("Triple", sequenceOf(treeifySame(x.first), treeifySame(x.second), treeifySame(x.third)).iterator())
 
       (x::class.isData) -> {
         val cls = x::class
         val className = cls.simpleName ?: cls.toString()
         val productArity = cls.constructors.first().parameters.size
 
-        if (productArity == 0) Tree.Lazy { ctx -> sequenceOf(x.toString()) }
+        if (productArity == 0) Tree.Lazy { ctx -> sequenceOf(x.toString()).iterator() }
         // Don't do "a to b" when product has 2 elements since there's a specific Pair/Triple in Kotlin
         //else if(productArity == 2 && Util.isOperator(x.productPrefix)){
         //  Tree.Infix(
@@ -137,10 +143,10 @@ abstract class Walker {
       else -> Tree.Lazy { ctx ->
         val v = x.toString()
           //when {
-          //  x.toString() == null -> "null" // It appears that in Kotlin x.toString() can never be null and we checked x for nullity at the top of this functino
+          //  x.toString() == null -> "null" // It appears that in Kotlin x.toString() can never be null and we checked x for nullity at the top of this function
           //  else -> x.toString()
           //}
-        sequenceOf(v)
+        sequenceOf(v).iterator()
       }
     }
   }

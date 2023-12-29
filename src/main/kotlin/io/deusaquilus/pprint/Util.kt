@@ -24,7 +24,7 @@ object Util {
 
     // tailrec
     private fun check(): Boolean =
-      if (head != null && head?.hasNext() ?: false) true
+      if (head != null && head?.hasNext()!!) true
       else if (!it0.hasNext()) false
       else {
         if (count % 2 == 0) head = it0.next()
@@ -33,11 +33,6 @@ object Util {
 
         check()
       }
-
-    companion object {
-      fun <T> fromSequences(it0: Sequence<Sequence<T>>, joiner: () -> Sequence<T>) =
-        ConcatIterator(it0.map { it.iterator() }.iterator(), { joiner().iterator() })
-    }
 
     override fun hasNext() = check()
 

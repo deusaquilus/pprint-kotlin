@@ -168,7 +168,7 @@ class Str private constructor(private val chars: Array<Char>, private val colors
   fun overlay(attrs: Attrs, start: Int = 0, end: Int = length) =
     overlayAll(listOf(Triple(attrs, start, end)))
 
-  fun overlayAll(attrs: Iterable<Triple<Attrs, Int, Int>>): Str {
+  fun overlayAll(attrs: List<Triple<Attrs, Int, Int>>): Str {
     val newColors = colors.clone()
     for ((attrs, start, end) in attrs) {
       require(end >= start) {
@@ -560,7 +560,7 @@ sealed interface Attrs{
 }
 
 sealed class Attr: Attrs {
-  val attrs = sequenceOf(this)
+  val attrs = listOf(this)
   /**
    * escapeOpt the actual ANSI escape sequence corresponding to this Attr
    */

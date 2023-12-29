@@ -4,13 +4,31 @@ import io.deusaquilus.fansi.Attrs
 import io.deusaquilus.fansi.Str
 import io.deusaquilus.fansi.toStr
 
-fun <T> Sequence<T>.hasNext(): Boolean = this.iterator().hasNext()
-fun <T> Sequence<T>.next(): T = this.iterator().next()
+//fun <T> Sequence<T>.hasNext(): Boolean = this.iterator().hasNext()
+//fun <T> Sequence<T>.next(): T = this.iterator().next()
 
 /**
  * Basically like mkString, but for nested iterators. Used whenever
  * you want to put stuff "in between" the elements of the larger
  * iterator
+ *
+ * Kotlin Note: In general I have chosen to represent things with Iterators but I need to use
+ * .asSequence() when I want to perform map, flatMap, filter etc... operators on the interator
+ * because Kotlin iterators don't support these operators. The other option would be to make everything
+ * a Sequence instead of an iterator but the problem with that is that Sequence does not support a
+ * the .next() and .hasNext() operators. Now we could go down to the Sequence.iterator() level and
+ * call these operators but the problem with that is if you go back up to an iterator by doing
+ * Sequence.iterator().{stuff}.asSequence() and then do .iterator() on the result of that again,
+ * you can only call the .iterator() on it once. This is because Iterator<T>.asSequence() calls a
+ * `Sequence { this }.constrainOnce()` operation which creates a sequence whose .iterator() function
+ * can only be call once (have a look at Sequences.kt for more info). This make sense because
+ * if you mess around calling methods of an iterator of a once-only sequence unexpected things
+ * will happen to that sequence. The only probelm is that the we are doing .asSequence() on that
+ * ConcatIterator which means we can't do concatIterator.asSequence().{stuff}.hasNext() and then .next()
+ * on it. The way to work around that would be to write a custom .asSequenceMulti operator on ConcatIterator
+ * which returns a sequence whose iterator can be returned many times. This might be fine with how
+ * ConcatIterator works. If there are problems with the current approach of converting to a sequence
+ * whenver a .map/filter/flatMap call is needed we can take a look at that approach.
  */
 class Renderer(
   val maxWidth: Int,
@@ -32,12 +50,18 @@ class Renderer(
       // and the two open/close parens already take up a few characters
       var totalHorizontalWidth = leftOffset + prefix.length + 2
       val buffer = mutableListOf<List<Str>>()
-      var lastChildIter = sequenceOf<Str>()
+      var lastChildIter = sequenceOf<Str>().iterator()
       var childCompletedLineCount = 0
       while (body.hasNext() && totalHorizontalWidth <= maxWidth && childCompletedLineCount == 0) {
 
         val child = body.next()
         val childRes = rec(child, (indentCount + 1) * indentStep, indentCount + 1)
+
+//        run {
+//          val res = rec(child, (indentCount + 1) * indentStep, indentCount + 1)
+//          println(res.iter.toList())
+//          println("here")
+//        }
 
         val childBuffer = mutableListOf<Str>()
         while (childRes.iter.hasNext() && totalHorizontalWidth < maxWidth) {
@@ -65,7 +89,7 @@ class Renderer(
 
       val indentPlusOne = Renderer.indent((indentCount + 1) * indentStep)
 
-      fun separator() = sequenceOf(Renderer.commaNewLine, indentPlusOne)
+      fun separator() = sequenceOf(Renderer.commaNewLine, indentPlusOne).iterator()
 
       if (
         totalHorizontalWidth <= maxWidth &&
@@ -76,15 +100,15 @@ class Renderer(
           { applyHeader().iterator() },
           {
             Renderer.joinIter(
-              buffer.asSequence().map { it.asSequence() },
-              { sequenceOf(Renderer.commaSpace) }
+              buffer.asSequence().map { it.iterator() }.iterator(),
+              { sequenceOf(Renderer.commaSpace).iterator() }
             )
           },
           { sequenceOf(Renderer.closeParen).iterator() }
         )
 
         val length: Int = buffer.asSequence().map { it.asSequence().map { it.length }.sum() }.sum()
-        Result(iter.asSequence(), {0}, {length})
+        Result(iter, {0}, {length})
       } else if (!nonEmpty && totalHorizontalWidth > maxWidth) {
         val iter = Util.concat(
           { applyHeader().iterator() },
@@ -96,25 +120,25 @@ class Renderer(
         )
 
         val length: Int = buffer.asSequence().map{it.asSequence().map {it.length}.sum()}.sum()
-        Result(iter.asSequence(), {0}, {length})
+        Result(iter, {0}, {length})
       } else {
         fun bufferedFragments() = Renderer.joinIter(
           buffer.asSequence().withIndex().map { (i, v) ->
-            if (i < buffer.size - 1) v.asSequence()
-            else v.asSequence() + lastChildIter
-          },
+            if (i < buffer.size - 1) v.iterator()
+            else (v.asSequence() + lastChildIter.asSequence()).iterator()
+          }.iterator(),
           { separator() }
         )
 
         fun nonBufferedFragments() = Renderer.joinIter(
-          body.map { c -> rec(c, (indentCount + 1) * indentStep, indentCount + 1).iter },
+          body.asSequence().map { c -> rec(c, (indentCount + 1) * indentStep, indentCount + 1).iter }.iterator(),
           { separator() }
         )
 
         fun allFragments() =
           if (buffer.isEmpty()) nonBufferedFragments()
           else if (!body.hasNext()) bufferedFragments()
-          else Renderer.joinIter(sequenceOf(bufferedFragments().asSequence(), nonBufferedFragments().asSequence()), { separator() })
+          else Renderer.joinIter(sequenceOf(bufferedFragments(), nonBufferedFragments()).iterator(), { separator() })
 
         fun iter() = Util.concat(
           { applyHeader().iterator() },
@@ -128,7 +152,7 @@ class Renderer(
         )
 
 
-        Result(iter().asSequence(), {childCompletedLineCount + 2}, {indentCount * indentStep + 1})
+        Result(iter(), {childCompletedLineCount + 2}, {indentCount * indentStep + 1})
       }
     }
 
@@ -151,10 +175,11 @@ class Renderer(
           indentStep, colorLiteral, colorApplyPrefix
         ))
       }
-      Truncated(str.map { Str(it) }, maxWidth, height = 99999999).toResult()
+      Truncated(str.asSequence().map { Str(it) }.iterator(), maxWidth, height = 99999999).toResult()
     }
 
-    is Tree.Literal -> Result.fromStr { colorLiteral(x.body) }
+    is Tree.Literal ->
+      Result.fromStr { colorLiteral(x.body) }
 
     is Tree.KeyValue -> {
       val k = x.key
@@ -166,8 +191,8 @@ class Renderer(
   }
 
   companion object {
-    fun <T> joinIter(it0: Sequence<Sequence<T>>, joiner: () -> Sequence<T>) =
-      Util.ConcatIterator.fromSequences(it0, joiner)
+    fun <T> joinIter(it0: Iterator<Iterator<T>>, joiner: () -> Iterator<T>) =
+      Util.ConcatIterator(it0, joiner)
 
 
     val openParen = Str("(")

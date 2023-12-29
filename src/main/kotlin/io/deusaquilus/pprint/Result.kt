@@ -3,16 +3,22 @@ package io.deusaquilus.pprint
 import io.deusaquilus.fansi.Str
 import io.deusaquilus.fansi.toStr
 
-class Result(val iter: Sequence<Str>,
+/**
+ * The intermediate return type of the pretty-print system: provides an
+ * iterator which produces the actual string output, as well as metadata
+ * around that output that is only available after the iterator is exhausted
+ */
+class Result(
+  val iter: Iterator<Str>,
   val completedLineCount0: () -> Int,
   val lastLineLength0: () -> Int)
 {
   val completedLineCount: Int by lazy {
-    require(iter.none())
+    require(!iter.hasNext())
     completedLineCount0()
   }
   val lastLineLength: Int by lazy {
-    require(iter.none())
+    require(!iter.hasNext())
     lastLineLength0()
   }
   fun flatMap(f: (Int, Int) -> Result): Result {
@@ -24,13 +30,13 @@ class Result(val iter: Sequence<Str>,
       { iter.iterator() },
       // () -> { require... }
       {
-        require(!iter.none())
+        require(!iter.hasNext())
         // In PPrint it's f(completedLineCount, lastLineLength0) but it's (lazy val lastLineLength0).
         // I think it would actually be executed at this point but I think thats fine because its supposed
         // to happen in the outer function call isMatch.
         val newResult = f(completedLineCount, lastLineLength0())
-        newResult.iter.map { x ->
-          if (!newResult.iter.any()) {
+        newResult.iter.asSequence().map { x ->
+          if (!newResult.iter.hasNext()) {
             newCompletedLineCount = newResult.completedLineCount
             newLastLineLength = newResult.lastLineLength
           }
@@ -39,7 +45,7 @@ class Result(val iter: Sequence<Str>,
       }
     )
     return Result(
-      mergedIterator.asSequence(),
+      mergedIterator,
       { newCompletedLineCount + completedLineCount }, // Kotlin has no direct by-name support so need to make it a lambda
       {
         if (newCompletedLineCount > 0) newLastLineLength
@@ -54,7 +60,7 @@ class Result(val iter: Sequence<Str>,
     fun fromStr(s: () -> Str): Result {
       val lines by lazy { s().plainText.lineSequence().toList() }
       // Note that in PPrint this is new Result(Iterator(s), ...) which is not actually lazy!
-      return Result(generateSequence(s), { lines.size - 1 }, { lines.last().length })
+      return Result(sequenceOf(s()).iterator(), { lines.size - 1 }, { lines.last().length })
     }
   }
 }

@@ -9,7 +9,7 @@ import io.deusaquilus.fansi.toStr
  * beyond a certain [[height]]
  */
 class Truncated(
-  val chunks0: Sequence<Str>,
+  val chunks0: Iterator<Str>,
   val width: Int,
   val height: Int,
   val truncationMarker: String = "..."): Iterator<Str> {
@@ -19,7 +19,7 @@ class Truncated(
 
   private val Internal = object {
 
-    val chunks = chunks0.filter { it.length > 0 }.iterator()
+    val chunks = chunks0.asSequence().filter { it.length > 0 }.iterator()
 
     var previousSlashN = false
     var previousSlashR = false
@@ -78,7 +78,7 @@ class Truncated(
   }
 
 
-  fun toResult() = Result(this.asSequence(), {completedLineCount}, {lastLineLength})
+  fun toResult() = Result(this, {completedLineCount}, {lastLineLength})
 
   override fun hasNext() = (Internal.chunks.hasNext() && Internal.completedLines < height - 1) || !Internal.lastLineFinished
 

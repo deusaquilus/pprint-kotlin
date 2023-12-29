@@ -1,3 +1,8 @@
+package io.deusaquilus.pprint
+
+import io.deusaquilus.fansi.Attrs
+import io.deusaquilus.fansi.Color
+import io.deusaquilus.fansi.Str
 import java.io.PrintStream
 
 /**
@@ -20,18 +25,18 @@ data class PPrinter(
   val defaultShowFieldNames: Boolean = true,
   val colorLiteral: Attrs = Color.Green,
   val colorApplyPrefix: Attrs = Color.Yellow
-): Walker {
+): Walker() {
 
   /**
     * Converts an [[Any]] into a large colored `Str`
     */
-  fun apply(x: Any,
+  operator fun invoke(x: Any,
             width: Int = defaultWidth,
             height: Int = defaultHeight,
             indent: Int = defaultIndent,
             initialOffset: Int = 0,
             escapeUnicode: Boolean = defaultEscapeUnicode,
-            showFieldNames: Boolean = defaultShowFieldNames): Str = {
+            showFieldNames: Boolean = defaultShowFieldNames): Str =
     Str.join(
       this.tokenize(
         x,
@@ -41,9 +46,9 @@ data class PPrinter(
         initialOffset,
         escapeUnicode = escapeUnicode,
         showFieldNames = showFieldNames
-      ).toSeq
+      ).toList() // important! this needs to be iterated more than once in the Truncated class
     )
-  }
+
 
   /**
     * Converts an [[Any]] into a large colored `Str`
@@ -54,16 +59,16 @@ data class PPrinter(
                   indent: Int = defaultIndent,
                   initialOffset: Int = 0,
                   escapeUnicode: Boolean = defaultEscapeUnicode,
-                  showFieldNames: Boolean = defaultShowFieldNames): Unit = {
+                  showFieldNames: Boolean = defaultShowFieldNames): Unit {
     tokenize(
-      x,
+      x as Any,
       width,
       height,
       indent,
       initialOffset,
       escapeUnicode = escapeUnicode,
       showFieldNames = showFieldNames
-    ).foreach(print)
+    ).forEach { print(it) }
     println()
   }
 
@@ -78,7 +83,7 @@ data class PPrinter(
     indent: Int = defaultIndent,
     initialOffset: Int = 0,
     escapeUnicode: Boolean = defaultEscapeUnicode,
-    showFieldNames: Boolean = defaultShowFieldNames): Iterator[Str] = {
+    showFieldNames: Boolean = defaultShowFieldNames): Sequence<Str> {
 
     // The three stages within the pretty-printing process:
 
@@ -86,17 +91,17 @@ data class PPrinter(
     val tree = this.treeify(x, escapeUnicode, showFieldNames)
     // Render the `Any` into a stream of tokens, properly indented and wrapped
     // at the given width
-    val renderer = new Renderer(width, colorApplyPrefix, colorLiteral, indent)
+    val renderer = Renderer(width, colorApplyPrefix, colorLiteral, indent)
     val rendered = renderer.rec(tree, initialOffset, 0).iter
     // Truncate the output stream once it's wrapped-at-width height goes
     // beyond the desired height
     val truncated = Truncated(rendered, width, height)
-    truncated
+    return truncated.asSequence()
   }
 
   companion object {
-    object Color: PPrinter
-    object BlackWhite: PPrinter(
+    //object Color: PPrinter
+    val BlackWhite = PPrinter(
       colorLiteral = Attrs.Empty,
       colorApplyPrefix = Attrs.Empty
     )
