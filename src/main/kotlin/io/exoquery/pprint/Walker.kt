@@ -1,7 +1,8 @@
 package io.exoquery.pprint
 
 import io.exoquery.fansi.Attrs
-import scala.collection.mutable.TreeMap
+import java.util.*
+import kotlin.collections.LinkedHashMap
 import kotlin.reflect.full.allSuperclasses
 
 /**
@@ -86,7 +87,7 @@ abstract class Walker {
           if (showGenericForCollections) {
             val superTypes = x::class.allSuperclasses.toSet()
             when {
-              (TreeMap::class in superTypes) -> "TreeMap"
+              (SortedMap::class in superTypes) -> "SortedMap"
               (LinkedHashMap::class in superTypes) -> "LinkedHashMap"
               else -> "Map"
             }

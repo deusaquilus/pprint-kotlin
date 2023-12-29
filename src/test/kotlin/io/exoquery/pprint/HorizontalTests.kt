@@ -156,7 +156,7 @@ class HorizontalTests : FunSpec({
       test("SortedMap") { Check(
         sortedMapOf("key" to "v", "key2" to "v2"),
         """Map("key" -> "v", "key2" -> "v2")""",
-        """TreeMap("key" -> "v", "key2" -> "v2")"""
+        """SortedMap("key" -> "v", "key2" -> "v2")"""
         ) }
       }
 

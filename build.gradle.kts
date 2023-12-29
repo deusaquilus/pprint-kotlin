@@ -32,8 +32,6 @@ repositories {
 
 dependencies {
     testImplementation("io.kotest:kotest-runner-junit5:5.8.0")
-    implementation("com.lihaoyi:fansi_2.13:0.4.0")
-    implementation("com.lihaoyi:pprint_2.13:0.8.1")
     implementation(kotlin("reflect"))
 }
 
