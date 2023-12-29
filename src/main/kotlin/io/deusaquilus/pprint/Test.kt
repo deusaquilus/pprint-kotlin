@@ -7,5 +7,5 @@ data class Name(val first: String, val last: String)
 fun main() {
   val p = Person(Name("Joe", "Bloggs"), 123)
   val q = Person(Name("Quiggs", "Moggs"), 123)
-  println(PPrinter()("foo" to q))
+  println(PPrinter(showGenericForCollections = true)(listOf("foo")))
 }

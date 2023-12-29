@@ -101,6 +101,9 @@ object Util {
       else sb.append(c)
   }
 
+  fun literalize(s: String, unicode: Boolean = true): String =
+    literalize(s.toCharArray(), unicode)
+
   fun literalize(s: CharArray, unicode: Boolean = true): String {
     val sb = StringBuilder()
     sb.append('"')

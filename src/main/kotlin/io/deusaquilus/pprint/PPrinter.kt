@@ -24,19 +24,22 @@ data class PPrinter(
   val defaultEscapeUnicode: Boolean = false,
   val defaultShowFieldNames: Boolean = true,
   val colorLiteral: Attrs = Color.Green,
-  val colorApplyPrefix: Attrs = Color.Yellow
+  val colorApplyPrefix: Attrs = Color.Yellow,
+  override val showGenericForCollections: Boolean = false
 ): Walker() {
 
   /**
     * Converts an [[Any]] into a large colored `Str`
     */
-  operator fun invoke(x: Any,
-            width: Int = defaultWidth,
-            height: Int = defaultHeight,
-            indent: Int = defaultIndent,
-            initialOffset: Int = 0,
-            escapeUnicode: Boolean = defaultEscapeUnicode,
-            showFieldNames: Boolean = defaultShowFieldNames): Str =
+  operator fun invoke(
+    x: Any?,
+    width: Int = defaultWidth,
+    height: Int = defaultHeight,
+    indent: Int = defaultIndent,
+    initialOffset: Int = 0,
+    escapeUnicode: Boolean = defaultEscapeUnicode,
+    showFieldNames: Boolean = defaultShowFieldNames
+  ): Str =
     Str.join(
       this.tokenize(
         x,
@@ -46,7 +49,7 @@ data class PPrinter(
         initialOffset,
         escapeUnicode = escapeUnicode,
         showFieldNames = showFieldNames
-      ).toList() // important! this needs to be iterated more than once in the Truncated class
+      ).asSequence().toList() // important! this needs to be iterated more than once in the Truncated class
     )
 
 
@@ -77,13 +80,13 @@ data class PPrinter(
     * certain width and truncated at a certain height
     */
   fun tokenize(
-    x: Any,
+    x: Any?,
     width: Int = defaultWidth,
     height: Int = defaultHeight,
     indent: Int = defaultIndent,
     initialOffset: Int = 0,
     escapeUnicode: Boolean = defaultEscapeUnicode,
-    showFieldNames: Boolean = defaultShowFieldNames): Sequence<Str> {
+    showFieldNames: Boolean = defaultShowFieldNames): Iterator<Str> {
 
     // The three stages within the pretty-printing process:
 
@@ -96,7 +99,7 @@ data class PPrinter(
     // Truncate the output stream once it's wrapped-at-width height goes
     // beyond the desired height
     val truncated = Truncated(rendered, width, height)
-    return truncated.asSequence()
+    return truncated
   }
 
   companion object {

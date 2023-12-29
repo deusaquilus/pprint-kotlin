@@ -1,6 +1,10 @@
 package io.deusaquilus.pprint
 
 import io.deusaquilus.fansi.Attrs
+import scala.collection.mutable.TreeMap
+import kotlin.reflect.full.allSuperclasses
+import kotlin.reflect.full.allSupertypes
+import kotlin.reflect.full.superclasses
 
 /**
  * A lazy AST representing pretty-printable text. Models `foo(a, b)`
@@ -47,6 +51,7 @@ sealed interface Tree {
 
 abstract class Walker {
   val tuplePrefix = "scala.Tuple"
+  abstract val showGenericForCollections: Boolean
 
   // No additional handlers. To extend, override the treeify function
   // fun additionalHandlers: PartialFunction<Any, Tree>
@@ -78,19 +83,44 @@ abstract class Walker {
       // No Symbol in Kotlin
       //x is Symbol -> Tree.Literal("'" + x.name)
 
-      x is Map<*, *> ->
+      x is Map<*, *> -> {
+        val name =
+          if (showGenericForCollections) {
+            val superTypes = x::class.allSuperclasses.toSet()
+            when {
+              (TreeMap::class in superTypes) -> "TreeMap"
+              (LinkedHashMap::class in superTypes) -> "LinkedHashMap"
+              else -> "Map"
+            }
+          } else {
+            x::class.simpleName ?: "Map"
+          }
         Tree.Apply(
-          x::class.simpleName ?: "Map",
+          name,
           x.asSequence().flatMap { (k, v) ->
             listOf(Tree.Infix(treeify(k, escapeUnicode, showFieldNames), "->", treeify(v, escapeUnicode, showFieldNames)))
           }.iterator()
         )
+      }
 
       // Note: Maybe want to have a configuration to always make it just "Sequence"
       x is Sequence<*> -> Tree.Apply(x::class.simpleName ?: "Sequence", x.asSequence().map { x -> treeify(x, escapeUnicode, showFieldNames) }.iterator())
 
       // Note: Maybe want to have a configuration to always make it just "Iterable"
-      x is Iterable<*> -> Tree.Apply(x::class.simpleName ?: "Iterable", x.asSequence().map { x -> treeify(x, escapeUnicode, showFieldNames) }.iterator())
+      x is Iterable<*> -> {
+        val name =
+          if (showGenericForCollections) {
+            val superTypes = x::class.allSuperclasses.toSet()
+            when {
+              (List::class in superTypes) -> "List"
+              (Set::class in superTypes) -> "Set"
+              else -> x::class.simpleName ?: "Iterable"
+            }
+          } else {
+            x::class.simpleName ?: "Iterable"
+          }
+        Tree.Apply(name, x.asSequence().map { x -> treeify(x, escapeUnicode, showFieldNames) }.iterator())
+      }
 
       // No None in kotlin
       //case None -> Tree.Literal("None")
