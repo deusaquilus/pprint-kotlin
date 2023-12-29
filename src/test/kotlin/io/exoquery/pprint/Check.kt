@@ -3,7 +3,7 @@ package io.exoquery.pprint
 import io.exoquery.fansi.Str
 
 class Check(val width: Int = 100, val height: Int = 99999, val renderTwice: Boolean = false, val fields: Boolean = false){
-  fun invoke(t: Any, vararg expected: String) = {
+  operator fun invoke(t: Any?, vararg expected: String?) = {
 
     val blackWhite = if (fields) Check.blackWhiteFields else Check.blackWhite
     val color = if (fields) Check.colorFields else Check.color
@@ -14,7 +14,7 @@ class Check(val width: Int = 100, val height: Int = 99999, val renderTwice: Bool
     for (pprinter in printers){
       val pprinted = Str.join(blackWhite.tokenize(t, width, height).asSequence().toList()).plainText
 
-      assert(expected.map { it.trim() }.contains(pprinted))
+      assert(expected.map { it?.trim() }.contains(pprinted))
     }
   }
 
