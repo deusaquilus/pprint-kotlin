@@ -22,8 +22,7 @@ object Util {
     private var head: Iterator<T>? = null
     private var count = 0
 
-    // tailrec
-    private fun check(): Boolean =
+    private tailrec fun check(): Boolean =
       if (head != null && head?.hasNext()!!) true
       else if (!it0.hasNext()) false
       else {
