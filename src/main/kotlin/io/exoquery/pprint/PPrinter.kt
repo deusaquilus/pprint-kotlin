@@ -4,6 +4,43 @@ import io.exoquery.fansi.Attrs
 import io.exoquery.fansi.Color as FansiColor
 import io.exoquery.fansi.Str
 
+data class PrintSettings(
+  val width: Int = DefaultWidth,
+  val height: Int = DefaultHeight,
+  val indent: Int = DefaultIndent,
+  val initialOffset: Int = DefaultInitialOffset,
+  val escapeUnicode: Boolean = DefaultEscapeUnicode,
+  val showFieldNames: Boolean = DefaultShowFieldNames,
+  val colorLiteral: Attrs = ColorLiteral,
+  val colorApplyPrefix: Attrs = ColorApplyPrefix,
+  val defaultShowGenericForCollections: Boolean = DefaultShowGenericForCollections
+) {
+  companion object {
+    val DefaultWidth: Int = 100
+    val DefaultHeight: Int = 500
+    val DefaultIndent: Int = 2
+    val DefaultInitialOffset: Int = 0
+    val DefaultEscapeUnicode: Boolean = false
+    val DefaultShowFieldNames: Boolean = true
+    val ColorLiteral: Attrs = FansiColor.Green
+    val ColorApplyPrefix: Attrs = FansiColor.Yellow
+    val DefaultShowGenericForCollections: Boolean = true
+
+    val Defaults =
+      PrintSettings(
+        DefaultWidth,
+        DefaultHeight,
+        DefaultIndent,
+        DefaultInitialOffset,
+        DefaultEscapeUnicode,
+        DefaultShowFieldNames,
+        ColorLiteral,
+        ColorApplyPrefix,
+        DefaultShowGenericForCollections
+      )
+  }
+}
+
 /**
   *
   * @param defaultWidth How wide to allow a pretty-printed value to become
@@ -17,14 +54,14 @@ import io.exoquery.fansi.Str
   *                           pretty-printed at runtime
   */
 data class PPrinter(
-  val defaultWidth: Int = 100,
-  val defaultHeight: Int = 500,
-  val defaultIndent: Int = 2,
-  val defaultEscapeUnicode: Boolean = false,
-  val defaultShowFieldNames: Boolean = true,
-  val colorLiteral: Attrs = FansiColor.Green,
-  val colorApplyPrefix: Attrs = FansiColor.Yellow,
-  override val showGenericForCollections: Boolean = true
+  val defaultWidth: Int = PrintSettings.DefaultWidth,
+  val defaultHeight: Int = PrintSettings.DefaultHeight,
+  val defaultIndent: Int = PrintSettings.DefaultIndent,
+  val defaultEscapeUnicode: Boolean = PrintSettings.DefaultEscapeUnicode,
+  val defaultShowFieldNames: Boolean = PrintSettings.DefaultShowFieldNames,
+  val colorLiteral: Attrs = PrintSettings.ColorLiteral,
+  val colorApplyPrefix: Attrs = PrintSettings.ColorApplyPrefix,
+  override val showGenericForCollections: Boolean = PrintSettings.DefaultShowGenericForCollections
 ): Walker() {
 
   /**
@@ -39,7 +76,8 @@ data class PPrinter(
     escapeUnicode: Boolean = defaultEscapeUnicode,
     showFieldNames: Boolean = defaultShowFieldNames
   ): Str =
-    Str.join(
+    // important! this needs to be iterated more than once in the Truncated class
+    Str.joinSafe(
       this.tokenize(
         x,
         width,
@@ -48,7 +86,7 @@ data class PPrinter(
         initialOffset,
         escapeUnicode = escapeUnicode,
         showFieldNames = showFieldNames
-      ).asSequence().toList() // important! this needs to be iterated more than once in the Truncated class
+      )
     )
 
 
@@ -91,14 +129,7 @@ data class PPrinter(
 
     // Convert the Any into a lazy Tree of `Apply`, `Infix` and `Lazy`/`Strict` literals
     val tree = this.treeify(x, escapeUnicode, showFieldNames)
-    // Render the `Any` into a stream of tokens, properly indented and wrapped
-    // at the given width
-    val renderer = Renderer(width, colorApplyPrefix, colorLiteral, indent)
-    val rendered = renderer.rec(tree, initialOffset, 0).iter
-    // Truncate the output stream once it's wrapped-at-width height goes
-    // beyond the desired height
-    val truncated = Truncated(rendered, width, height)
-    return truncated
+    return TreeRenderer.makeStr(tree, PrintSettings(width, height, indent, initialOffset, escapeUnicode, showFieldNames))
   }
 
   companion object {
@@ -110,3 +141,15 @@ data class PPrinter(
   }
 }
 
+object TreeRenderer {
+  fun makeStr(tree: Tree, settings: PrintSettings): Iterator<Str> {
+    // Render the `Any` into a stream of tokens, properly indented and wrapped
+    // at the given width
+    val renderer = Renderer(settings.width, settings.colorApplyPrefix, settings.colorLiteral, settings.indent)
+    val rendered = renderer.rec(tree, settings.initialOffset, 0).iter
+    // Truncate the output stream once it's wrapped-at-width height goes
+    // beyond the desired height
+    val truncated = Truncated(rendered, settings.width, settings.height)
+    return truncated
+  }
+}

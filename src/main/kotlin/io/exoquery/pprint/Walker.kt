@@ -46,6 +46,21 @@ sealed interface Tree {
     val literalColor: Attrs,
     val applyPrefixColor: Attrs
   )
+
+  companion object {
+    fun encodeChar(x: Char, escapeUnicode: Boolean): Tree.Literal {
+      val sb = StringBuilder()
+      sb.append('\'')
+      Util.escapeChar(x, sb, escapeUnicode)
+      sb.append('\'')
+      return Tree.Literal(sb.toString())
+    }
+
+    fun encodeString(x: String, escapeUnicode: Boolean): Tree.Literal {
+      return if (x.any {c -> c == '\n' || c == '\r'}) Tree.Literal("\"\"\"" + x + "\"\"\"")
+      else Tree.Literal(Util.literalize(x.toCharArray(), escapeUnicode))
+    }
+  }
 }
 
 abstract class Walker {
@@ -61,23 +76,14 @@ abstract class Walker {
 
       x == null -> Tree.Literal("null")
       x is Boolean -> Tree.Literal(x.toString())
-      x is Char -> {
-        val sb = StringBuilder()
-        sb.append('\'')
-        Util.escapeChar(x, sb, escapeUnicode)
-        sb.append('\'')
-        Tree.Literal(sb.toString())
-      }
+      x is Char -> Tree.encodeChar(x, escapeUnicode)
       x is Byte -> Tree.Literal(x.toString())
       x is Short -> Tree.Literal(x.toString())
       x is Int -> Tree.Literal(x.toString())
       x is Long -> Tree.Literal(x.toString() + "L")
       x is Float -> Tree.Literal(x.toString() + "F")
       x is Double -> Tree.Literal(x.toString())
-      x is String -> {
-        if (x.any {c -> c == '\n' || c == '\r'}) Tree.Literal("\"\"\"" + x + "\"\"\"")
-        else Tree.Literal(Util.literalize(x.toCharArray(), escapeUnicode))
-      }
+      x is String -> Tree.encodeString(x, escapeUnicode)
 
       // No Symbol in Kotlin
       //x is Symbol -> Tree.Literal("'" + x.name)

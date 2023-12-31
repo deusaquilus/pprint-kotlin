@@ -325,6 +325,10 @@ class Str private constructor(private val chars: Array<Char>, private val colors
     fun join(args: Iterable<Str>): Str =
       join(args, Str(""))
 
+    // In case we need to consome the sequence more than once use this because it will make it permanant
+    fun joinSafe(args: Iterator<Str>) =
+      join(args.asSequence().toList())
+
     fun join(args: Iterator<Str>, sep: String): Str =
       join(args.asSequence().toList(), sep.toStr())
 

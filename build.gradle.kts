@@ -4,6 +4,7 @@ plugins {
     `maven-publish`
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
     id("org.jetbrains.dokka") version "1.9.10"
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.10"
     id("signing")
 }
 
@@ -33,6 +34,7 @@ repositories {
 dependencies {
     testImplementation("io.kotest:kotest-runner-junit5:5.8.0")
     implementation(kotlin("reflect"))
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
 }
 
 //tasks.test {
