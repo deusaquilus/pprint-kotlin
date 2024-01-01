@@ -1,6 +1,6 @@
 # PPrint for Kotlin
 
-This is a port of Li Haoyi's excellent Scala pretty-printing library into Kotlin [print](https://github.com/com-lihaoyi/PPrint).
+This is a port of Li Haoyi's excellent Scala pretty-printing library into Kotlin [PPrint](https://github.com/com-lihaoyi/PPrint).
 (As well as Li Haoyi's excellent Ansi-Formatting library Fansi!)
 
 ## Usage
@@ -83,7 +83,31 @@ println(pprint(p))
 
 ## <img src="https://github.com/deusaquilus/pprint-kotlin/assets/1369480/4f3aeb69-315f-4fd7-b831-c568c6daa26c" width=50% height=50%>
 
+## Removing Field Names
 
+By default pprint will print the field names of data classes. You can remove these by using `showFieldNames = false`:
+
+```kotlin
+val p = Person(Name("Joe", "Bloggs"), 42)
+println(pprint(p, showFieldNames = false))
+```
+
+For larger ADTs this dramatically reduces the amount of output and often improves the readability.
+
+## User-controlled Width
+
+Another nice feature of PPrint is that it can print data classes with a user-controlled width.
+
+```kotlin
+println(pprint(p, showFieldNames = false, defaultWidth = 30)) // Narrow
+```
+<img src="https://github.com/deusaquilus/pprint-kotlin/assets/1369480/186047f4-dcfe-4331-9bd3-23f51549548a" width=50% height=50%>
+
+```kotlin
+println(pprint(p, showFieldNames = false, defaultWidth = 100)) // Wide
+```
+
+## <img src="https://github.com/deusaquilus/pprint-kotlin/assets/1369480/c6539ed6-0584-4233-87d6-224b35e011b6" width=70% height=70%>
 
 ## Infinite Sequences
 
@@ -118,17 +142,6 @@ val p = Person(Name("Joe", "Bloggs"), 42)
 // Use Black & White Printing
 println(pprint(p).plainText)
 ```
-
-## Removing Field Names
-
-By default pprint will print the field names of data classes. You can remove these by using `showFieldNames = false`:
-
-```kotlin
-val p = Person(Name("Joe", "Bloggs"), 42)
-println(pprint(p, showFieldNames = false))
-```
-
-For larger ADTs this dramatically reduces the amount of output and often improves the readability.
 
 ## Extending PPrint
 
