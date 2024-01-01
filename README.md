@@ -130,6 +130,23 @@ because it is highly lazy. It only evaluates the sequence as it is printing it,
 and the printing is always constrained by the height and width of the output. You can
 control these with the `defaultHeight` and `defaultWidth` parameters to the `pprint` function.
 
+## Circular References
+
+Similar to infinite sequences, PPrint will print circular references up to the specified defaultHeight after which the output will be truncated.
+```kotlin
+data class Parent(var child: Child?)
+data class Child(var parent: Parent?)
+
+val child = Child(parent = null)
+val parent = Parent(child = null)
+child.parent = parent
+parent.child = child
+println(pprint(parent, defaultHeight = 10))
+```
+
+## <img src="https://github.com/deusaquilus/pprint-kotlin/assets/1369480/146c78eb-11e8-4cdb-a547-76ac9d79ce91" width=50% height=50%>
+
+
 ## Black & White Printing
 
 The output of the pprint function is not actually a java.lang.String, but a fansi.Str. This
