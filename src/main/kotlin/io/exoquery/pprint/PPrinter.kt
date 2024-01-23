@@ -4,6 +4,17 @@ import io.exoquery.fansi.Attrs
 import io.exoquery.fansi.Color as FansiColor
 import io.exoquery.fansi.Str
 
+data class PPrinterConfig(
+  val defaultWidth: Int = 100,
+  val defaultHeight: Int = 500,
+  val defaultIndent: Int = 2,
+  val defaultEscapeUnicode: Boolean = false,
+  val defaultShowFieldNames: Boolean = true,
+  val colorLiteral: Attrs = FansiColor.Green,
+  val colorApplyPrefix: Attrs = FansiColor.Yellow,
+  val showGenericForCollections: Boolean = true
+)
+
 /**
   *
   * @param defaultWidth How wide to allow a pretty-printed value to become
@@ -16,28 +27,20 @@ import io.exoquery.fansi.Str
   * @param additionalHandlers Provide this to override how certain types are
   *                           pretty-printed at runtime
   */
-data class PPrinter(
-  val defaultWidth: Int = 100,
-  val defaultHeight: Int = 500,
-  val defaultIndent: Int = 2,
-  val defaultEscapeUnicode: Boolean = false,
-  val defaultShowFieldNames: Boolean = true,
-  val colorLiteral: Attrs = FansiColor.Green,
-  val colorApplyPrefix: Attrs = FansiColor.Yellow,
-  override val showGenericForCollections: Boolean = true
-): Walker() {
+open class PPrinter(val config: PPrinterConfig): Walker {
+  override val showGenericForCollections get() = config.showGenericForCollections
 
   /**
     * Converts an [[Any]] into a large colored `Str`
     */
-  operator fun invoke(
+  open operator fun invoke(
     x: Any?,
-    width: Int = defaultWidth,
-    height: Int = defaultHeight,
-    indent: Int = defaultIndent,
+    width: Int = config.defaultWidth,
+    height: Int = config.defaultHeight,
+    indent: Int = config.defaultIndent,
     initialOffset: Int = 0,
-    escapeUnicode: Boolean = defaultEscapeUnicode,
-    showFieldNames: Boolean = defaultShowFieldNames
+    escapeUnicode: Boolean = config.defaultEscapeUnicode,
+    showFieldNames: Boolean = config.defaultShowFieldNames
   ): Str =
     Str.join(
       this.tokenize(
@@ -55,13 +58,13 @@ data class PPrinter(
   /**
     * Converts an [[Any]] into a large colored `Str`
     */
-  fun <T> pprintln(x: T,
-                  width: Int = defaultWidth,
-                  height: Int = defaultHeight,
-                  indent: Int = defaultIndent,
+  open fun <T> pprintln(x: T,
+                  width: Int = config.defaultWidth,
+                  height: Int = config.defaultHeight,
+                  indent: Int = config.defaultIndent,
                   initialOffset: Int = 0,
-                  escapeUnicode: Boolean = defaultEscapeUnicode,
-                  showFieldNames: Boolean = defaultShowFieldNames): Unit {
+                  escapeUnicode: Boolean = config.defaultEscapeUnicode,
+                  showFieldNames: Boolean = config.defaultShowFieldNames): Unit {
     tokenize(
       x as Any,
       width,
@@ -78,14 +81,14 @@ data class PPrinter(
     * Converts an [[Any]] into an iterator of colored chunks, wrapped at a
     * certain width and truncated at a certain height
     */
-  fun tokenize(
+  open fun tokenize(
     x: Any?,
-    width: Int = defaultWidth,
-    height: Int = defaultHeight,
-    indent: Int = defaultIndent,
+    width: Int = config.defaultWidth,
+    height: Int = config.defaultHeight,
+    indent: Int = config.defaultIndent,
     initialOffset: Int = 0,
-    escapeUnicode: Boolean = defaultEscapeUnicode,
-    showFieldNames: Boolean = defaultShowFieldNames): Iterator<Str> {
+    escapeUnicode: Boolean = config.defaultEscapeUnicode,
+    showFieldNames: Boolean = config.defaultShowFieldNames): Iterator<Str> {
 
     // The three stages within the pretty-printing process:
 
@@ -93,7 +96,7 @@ data class PPrinter(
     val tree = this.treeify(x, escapeUnicode, showFieldNames)
     // Render the `Any` into a stream of tokens, properly indented and wrapped
     // at the given width
-    val renderer = Renderer(width, colorApplyPrefix, colorLiteral, indent)
+    val renderer = Renderer(width, config.colorApplyPrefix, config.colorLiteral, indent)
     val rendered = renderer.rec(tree, initialOffset, 0).iter
     // Truncate the output stream once it's wrapped-at-width height goes
     // beyond the desired height
@@ -102,10 +105,12 @@ data class PPrinter(
   }
 
   companion object {
-    val Color = PPrinter()
+    val Color = PPrinter(PPrinterConfig())
     val BlackWhite = PPrinter(
-      colorLiteral = Attrs.Empty,
-      colorApplyPrefix = Attrs.Empty
+      PPrinterConfig().copy(
+        colorLiteral = Attrs.Empty,
+        colorApplyPrefix = Attrs.Empty
+      )
     )
   }
 }

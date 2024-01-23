@@ -28,9 +28,9 @@ class Check(val width: Int = 100, val height: Int = 99999, val renderTwice: Bool
   }
 
   companion object {
-    val blackWhite = PPrinter(defaultShowFieldNames = false)
-    val color = PPrinter(defaultShowFieldNames = false)
-    val blackWhiteFields = PPrinter()
-    val colorFields = PPrinter()
+    val blackWhite = PPrinter(PPrinterConfig(defaultShowFieldNames = false))
+    val color = PPrinter(PPrinterConfig(defaultShowFieldNames = false))
+    val blackWhiteFields = PPrinter(PPrinterConfig())
+    val colorFields = PPrinter(PPrinterConfig())
   }
 }

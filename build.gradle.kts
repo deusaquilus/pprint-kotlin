@@ -35,10 +35,7 @@ dependencies {
     implementation(kotlin("reflect"))
 }
 
-//tasks.test {
-//    useJUnitPlatform()
-//}
-
+// Needed for Kotest
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
 }

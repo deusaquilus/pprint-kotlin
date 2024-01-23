@@ -48,9 +48,8 @@ sealed interface Tree {
   )
 }
 
-abstract class Walker {
-  val tuplePrefix = "scala.Tuple"
-  abstract val showGenericForCollections: Boolean
+interface Walker {
+  val showGenericForCollections: Boolean
 
   // No additional handlers. To extend, override the treeify function
   // fun additionalHandlers: PartialFunction<Any, Tree>
