@@ -19,7 +19,7 @@ nexusPublishing {
 apply(plugin = "io.github.gradle-nexus.publish-plugin")
 
 group = "io.exoquery"
-version = "1.0.0"
+version = "1.1.0"
 
 apply(plugin = "kotlin")
 apply(plugin = "maven-publish")
