@@ -9,11 +9,19 @@ Add the following to your build.gradle.kts:
 
 ```kotlin
 implementation("io.exoquery:pprint-kotlin:1.1.0")
+
+// For Kotlin Multiplatform add serialization to your plugins:
+// plugins {
+//   kotlin("plugin.serialization") version "1.9.22"
+// }
+// Then add the following to your dependencies
+// implementation("io.exoquery:pprint-kotlin-kmp:1.1.0")
 ```
 
 Then use the library like this: 
 ```kotlin
 import io.exoquery.pprint
+// For kotlin multiplatform use: import io.exoquery.kmp.pprint 
 
 data class Name(val first: String, val last: String)
 data class Person(val name: Name, val age: Int)
@@ -123,7 +131,20 @@ println(pprint(p, defaultHeight = 10))
 
 ## <img src="https://github.com/deusaquilus/pprint-kotlin/assets/1369480/9026f8ca-479e-442d-966b-0c1f1f887986" width=50% height=50%>
 
-
+> ### Infinite Sequences in Kotlin Multiplatform
+> Note that in order to use Infinite sequences is Kotlin Multiplatform, you need to annotate
+> the sequence-field using `@Serializable(with = PPrintSequenceSerializer::class)` for example:
+> ```kotlin
+> @Serializable
+> data class SequenceHolder(@Serializable(with = PPrintSequenceSerializer::class) val seq: Sequence<String>)
+> 
+> var i = 0
+> val p = SequenceHolder(generateSequence { "foo-${i++}" })
+> println(pprint(p, defaultHeight = 10))
+> ```
+> 
+> You should also be able to use the `@file:UseSerializers(PPrintSequenceSerializer::class)` to deliniate this for a entire file but this does not always work in practice.
+> See the kotlinx-serialization documentation for [Serializing 3rd Party Classes](https://github.com/Kotlin/kotlinx.serialization/blob/master/docs/serializers.md#serializing-3rd-party-classes) for more detail.
 
 PPrint is able to print this infinite sequence without stack-overflowing or running out of memory
 because it is highly lazy. It only evaluates the sequence as it is printing it,
@@ -152,7 +173,7 @@ println(pprint(parent, defaultHeight = 10))
 The output of the pprint function is not actually a java.lang.String, but a fansi.Str. This
 means you can control how it is printed. For example, to print it in black and white simple do:
 ```kotlin
-import io.exoquery.pprint.PPrinter
+import io.exoquery.pprint
 
 val p = Person(Name("Joe", "Bloggs"), 42)
 
@@ -165,7 +186,7 @@ println(pprint(p).plainText)
 In order to extend pprint, subclass the PPrinter class and override the `treeify` function.
 For example:
 ```kotlin
-class CustomPPrinter1(config: PPrinterConfig) : PPrinter(config) {
+class CustomPPrinter1(val config: PPrinterConfig) : PPrinter(config) {
   override fun treeify(x: Any?, escapeUnicode: Boolean, showFieldNames: Boolean): Tree =
     when (x) {
       is java.time.LocalDate -> Tree.Literal(x.format(DateTimeFormatter.ofPattern("MM/dd/YYYY")))
@@ -180,6 +201,31 @@ val joe = Person("Joe", LocalDate.of(1981, 1, 1))
 println(pp.invoke(joe))
 //> Person(name = "Joe", born = 01/01/1981)
 ```
+This printer can then be used as the basis of a custom `pprint`-like user defined function.
+
+> ### Extending PPrint in Kotlin Multiplatform
+> In Kotlin Multiplatform, the PPrinter is parametrized and takes an additional `SerializationStrategy<T>` parameter.
+> You can extend it like this:
+> ```kotlin
+> class CustomPPrinter1<T>(override val serializer: SerializationStrategy<T>, override val config: PPrinterConfig) : PPrinter<T>(serializer, config) {
+>   // Overwrite `treeifyWith` instead of treeify 
+>   override fun <R> treeifyWith(treeifyable: PPrinter.Treeifyable<R>, escapeUnicode: Boolean, showFieldNames: Boolean): Tree =
+>     when (val v = treeifyable.value) {
+>       is LocalDate -> Tree.Literal(v.format(DateTimeFormatter.ofPattern("MM/dd/YYYY")))
+>       else -> super.treeifyWith(treeifyable, escapeUnicode, showFieldNames)
+>     }
+> }
+> 
+> // Define the class to serialize, it will not compile unless you add a @Contextual for the custom property
+> @Serializeable data class Person(val name: String, @Contextual val born: LocalDate)
+> val pp = CustomPPrinter1(Person.serializer(), PPrinterConfig())
+> val joe = Person("Joe", LocalDate.of(1981, 1, 1))
+> println(pp.invoke(joe))
+> ```
+> You can write a custom pprint-function based on this class like this:
+> ```kotlin
+> inline fun <reified T> myPPrint(value: T) = CustomPPrinter1(serializer<T>(), PPrinterConfig()).invoke(value)
+> ```
 
 For nested objects use Tree.Apply and recursively call the treeify method.
 ```kotlin
@@ -190,7 +236,7 @@ class MyJavaBean(val a: String, val b: Int) {
 }
 
 // Create the custom printer
-class CustomPPrinter2(config: PPrinterConfig) : PPrinter(config) {
+class CustomPPrinter2(val config: PPrinterConfig) : PPrinter(config) {
   override fun treeify(x: Any?, esc: Boolean, names: Boolean): Tree =
     when (x) {
       // List through the properties of 'MyJavaBean' and recursively call treeify on them.
@@ -208,7 +254,7 @@ println(pp.invoke(bean))
 
 To print field-names you use Tree.KeyValue:
 ```kotlin
-class CustomPPrinter3(config: PPrinterConfig) : PPrinter(config) {
+class CustomPPrinter3(val config: PPrinterConfig) : PPrinter(config) {
   override fun treeify(x: Any?, escapeUnicode: Boolean, showFieldNames: Boolean): Tree {
     // function to make recursive calls shorter
     fun rec(x: Any?) = treeify(x, escapeUnicode, showFieldNames)
@@ -233,7 +279,7 @@ println(pp.invoke(bean))
 
 Often it is a good idea to honor the `showFieldNames` parameter only display key-values if it is enabled:
 ```kotlin
-class CustomPPrinter4(config: PPrinterConfig) : PPrinter(config) {
+class CustomPPrinter4(val config: PPrinterConfig) : PPrinter(config) {
   override fun treeify(x: Any?, escapeUnicode: Boolean, showFieldNames: Boolean): Tree {
     // function to make recursive calls shorter
     fun rec(x: Any?) = treeify(x, escapeUnicode, showFieldNames)
@@ -256,6 +302,127 @@ println(CustomPPrinter4(PPrinterConfig(defaultShowFieldNames = false)).invoke(be
 //> MyJavaBean("abc", 123)
 ```
 
+## PPrint with Kotlin Multiplatform (KMP)
+
+The JVM-based PPrint relies on the `kotlin-reflect` library in order to recurse on the fields in a data class.
+For PPrint-KMP, this is done by the `kotlinx-serialization` library. Therefore you need the kotlinx-serialization
+runtime as well as the compiler-plugin in order to use PPrint Multiplatform. The former should be pulled in
+automatically when you import `pprint-kotlin-kmp`:
+```kotlin
+plugins {
+  kotlin("multiplatform")
+  kotlin("plugin.serialization") version "1.9.22"
+}
+
+...
+
+kotlin {
+  sourceSets {
+    commonMain {
+      dependencies {
+        implementation("io.exoquery:pprint-kotlin-kmp:1.2.2")
+        // implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.2")
+      }
+    }
+  }
+  ...
+}
+```
+
+Since Kotlin Multiplatform relies on the `@Serialization` (and related) annotations in order to deliniate a
+class as serializable, you will need to use the `@Serializable` annotation on your data classes. For example:
+```kotlin
+@Serializable
+data class Name(val first: String, val last: String)
+@Serializable
+data class Person(val name: Name, val age: Int)
+
+val p = Person(Name("Joe", "Bloggs"), 42)
+pprint(p)
+//> Person(name = Name(first = "Joe", last = "Bloggs"), age = 123)
+```
+
+In some cases (i.e. custom fields) you will need to use the @Contextual annotation to deliniate a field as custom.
+See the note about LocalDate in the [Extending PPrint in Kotlin Multiplatform](#extending-pprint-in-kotlin-multiplatform) section for more detail.
+
+When using sequences, you will need to annotate the 
+sequence-field using `@Serializable(with = PPrintSequenceSerializer::class)`.
+See the note in the [Infinite Sequences in Kotlin Multiplatform](#infinite-sequences-in-kotlin-multiplatform) section for more detail.
+
+#### Sealed Hierarchies in KMP
+
+According to the `kotlinx-serialization` documentation, every member of a sealed hierarchy must be annotated with `@Serializable`.
+For example, in the following hierarchy:
+```kotlin
+@Serializable
+sealed interface Colors {
+  @Serializable object Red : Colors
+  @Serializable object Green : Colors
+  @Serializable object Blue : Colors
+  @Serializable data class Custom(val value: String) : Colors
+}
+```
+Every member is annotated with `@Serializable`.
+
+This requirement extends to PPrint-Multiplatform as well since it relies on `kotlinx-serialization` 
+to traverse the hierarchy.
+
+#### How do deal with Custom Fields in KMP
+
+In general whenever you have a atom-property i.e. something not generic you can just mark the field as @Contextual
+so long as there is a specific case defined for it in `treeifyWith`. However if you are using a type such as
+a collection that has a generic element requring its own serializer, you will need to use the
+`@Serializable(with = CustomSerializer::class)` syntax and define a `CustomSerializer` for the type.
+What is important to note is that `CustomSerializer` does not actually need a serialization implementation,
+you it is just needed in order to be able to carry around the serializer for the generic type. For example,
+the serializer for `Sequence` is defined as:
+```kotlin
+class PPrintSequenceSerializer<T>(val element: KSerializer<T>) : KSerializer<Sequence<T>> {
+  override val descriptor: SerialDescriptor = element.descriptor
+  override fun serialize(encoder: Encoder, value: Sequence<T>) = throw IllegalStateException("...")
+  override fun deserialize(decoder: Decoder) = throw IllegalStateException("...")
+}
+```
+(Note that a real user-defined serialzier for `Sequence` will work as well.)
+
+The actual handling of sequence printing is done in the `treeifyWith` method (roughly) like this:
+```kotlin
+open fun <R> treeifyWith(treeifyable: Treeifyable<R>, escapeUnicode: Boolean, showFieldNames: Boolean): Tree =
+  when {
+    treeifyable is Sequence<*> && treeifyable is Treeifyable.Elem && treeifyable.serializer is PPrintSequenceSerializer<*> -> {
+      @Suppress("UNCHECKED_CAST")
+      val elementSerializer = treeifyable.serializer.element as KSerializer<Any?>
+      Tree.Apply("Sequence", value.map { treeifyWith(Treeifyable.Elem(it, elementSerializer), escapeUnicode, showFieldNames) }.iterator())
+    }
+    else -> super.treeifyWith(treeifyable, escapeUnicode, showFieldNames)
+  }
+```
+You can follow this pattern to define PPrintable serializers for other generic types.
+
+#### General Note on Generic ADTs and KMP
+
+Due to issues in kotlinx-serialization like [#1341](https://github.com/Kotlin/kotlinx.serialization/issues/1341) there are cases
+where kotlinx-serialization will not be able to serialize a generic ADT (GADT). This is inherently a problem for PPrint-KMP since it relies
+on kotlinx-serialization to traverse the ADT. In general, if you are having trouble with a GADT, may need to define a custom serializer.
+
+For example if you attempt to fully-type a partially-typed GADT element with a collection-type and then widen it
+to the GADT-root type you'll get some serious problems:
+```kotlin
+@Serializable
+sealed interface Root<A, B>
+@Serializable
+data class Parent<A, B>(val child: Root<A, B>): Root<A, B>
+@Serializable
+data class PartiallyTyped<A>(val value: A): Root<A, String>
+
+fun gadt() {
+  val value = Parent(PartiallyTyped(listOf(1,2,3)))
+  println(pprint(value))
+  // ========= Boom! =========
+  // Exception in thread "main" kotlinx.serialization.SerializationException: Serializer for subclass 'ArrayList' is not found in the polymorphic scope of 'Any'.
+}
+```
+I've made some comments on this issue [here](https://github.com/Kotlin/kotlinx.serialization/issues/1341#issuecomment-1920511403).
 
 # Fansi for Kotlin
 PPrint is powered by Fansi. It relies on this amazing library in order to be able to print out ansi-colored strings.
