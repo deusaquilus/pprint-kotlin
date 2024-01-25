@@ -8,7 +8,7 @@ This is a port of Li Haoyi's excellent Scala pretty-printing library into Kotlin
 Add the following to your build.gradle.kts:
 
 ```kotlin
-implementation("io.exoquery:pprint-kotlin:1.0.0")
+implementation("io.exoquery:pprint-kotlin:1.1.0")
 ```
 
 Then use the library like this: 
