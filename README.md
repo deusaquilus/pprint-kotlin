@@ -324,7 +324,7 @@ val underlinedBlue = blueWorld.overlay(fansi.Underlined.On, 4, 13)
 
 And it just works:
 
-![LandingExample](docs/LandingExample.png)
+![image](https://github.com/deusaquilus/pprint-kotlin/assets/1369480/d9b14cff-0527-41b7-96a7-25aa616f76aa)
 
 Why Fansi?
 ----------
@@ -356,14 +356,18 @@ by with adding copious amounts of `Console.RESET`s when working with colored
 `java.lang.String`s, but even that easily results in errors when you `RESET`
 too much and stomp over colors that already exist:
 
-![StringError](docs/StringError.png)
+![image](https://github.com/deusaquilus/pprint-kotlin/assets/1369480/792d08b6-4594-477f-acfb-e095c921e5e9)
+
 
 `fansi.Str` allows you to perform these tasks safely and easily:
 
-![FansiRocks](docs/FansiRocks.png)
+![image](https://github.com/deusaquilus/pprint-kotlin/assets/1369480/41a916dd-0605-4879-8ad2-b49c2516461c)
 
 Fansi is also very efficient: `fansi.Str` uses just 3x as much memory as
 `java.lang.String` to hold all the additional formatting information.
+
+> Note this was the case in Scala, I am not certain if the same is true in Kotlin.
+
 Its operations are probably about the same factor slower, as they are all
 implemented using fast `arraycopy`s and while-loops similar to
 `java.lang.String`. That means that - unlike fiddling with Ansi-codes using
@@ -371,24 +375,20 @@ regexes - you generally do not need to worry about performance when dealing with
 `fansi.Str`s. Just treat them as you would `java.lang.String`s: splitting them,
 `substring`ing them, and applying or removing colors or other styles at-will.
 
-Fansi was originally a part of the [Ammonite REPL](http://www.lihaoyi.com/Ammonite/),
-but is now a standalone zero-dependency library anyone can use if they want
-to easily and efficiently deal with colored Ansi strings.
-
 Using Fansi
 -----------
 
 The main operations you need to know are:
 
-- `fansi.Str(raw: CharSequence): fansi.String`, to construct colored
+- Str(raw: CharSequence): fansi.String`, to construct colored
   Ansi strings from a `java.lang.String`, with or without existing Ansi
   color codes inside it.
 
-- `fansi.Str`, the primary data-type that you will use to pass-around
+- `Str`, the primary data-type that you will use to pass-around
   colored Ansi strings and manipulate them: concatenating, splitting,
   applying or removing colors, etc.
 
-![fansi.Str](docs/Str.png)
+![image](https://github.com/deusaquilus/pprint-kotlin/assets/1369480/46422458-8406-459c-bd44-578f1465a9ea)
 
 - `fansi.Attr`s are the individual modifications you can make to an
   `fansi.Str`'s formatting. Examples are:
@@ -399,14 +399,14 @@ The main operations you need to know are:
     - `fansi.Back.*`
     - `fansi.Attr.Reset`
 
-![fansi.Attr](docs/Attr.png)
+![image](https://github.com/deusaquilus/pprint-kotlin/assets/1369480/a505dc23-186c-450f-8dd6-2af5616c0420)
 
 - `fansi.Attrs` represents a group of zero or more `fansi.Attr`s.
   These that can be passed around together, combined via `++` or applied
   to `fansi.Str`s all at once. Any individual `fansi.Attr` can be used
   when `fansi.Attrs` is required, as can `fansi.Attrs.empty`.
 
-![fansi.Attrs](docs/Attrs.png)
+![image](https://github.com/deusaquilus/pprint-kotlin/assets/1369480/b9c67518-0e85-4a27-9dca-14449920f983)
 
 - Using any of the `fansi.Attr` or `fansi.Attrs` mentioned above, e.g.
   `fansi.Color.Red`, using `fansi.Color.Red("hello world ansi!")` to create a
@@ -420,8 +420,11 @@ Fansi also supports 8-bit 256-colors through `fansi.Color.Full` and
 `fansi.Back.Full`, as well as 24-bit 16-million-colors through
 `fansi.Color.True` and `fansi.Back.True`:
 
-![docs/TrueColor.png](docs/TrueColor.png)
+![image](https://github.com/deusaquilus/pprint-kotlin/assets/1369480/f1c5c6b8-597c-448f-9df2-d19698d2ca16)
 
 Note that Fansi only performs the rendering of the colors to an ANSI-encoded
 string. Final rendering will depend on whichever terminal you print the string
 to, whether it is able to display these sets of colors or not.
+
+_Thanks so much to Li Haoyi for building Fansi and PPrint!!_
+
