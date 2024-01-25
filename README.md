@@ -258,6 +258,7 @@ println(CustomPPrinter4(PPrinterConfig(defaultShowFieldNames = false)).invoke(be
 
 
 # Fansi for Kotlin
+PPrint is powered by Fansi. It relies on this amazing library in order to be able to print out ansi-colored strings.
 
 > NOTE. Most of this is taken from the original Fansi documentation [here](https://raw.githubusercontent.com/com-lihaoyi/fansi/master/readme.md)
 
