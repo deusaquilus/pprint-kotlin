@@ -56,6 +56,10 @@ interface Walker {
 
   fun treeify(x: Any?, escapeUnicode: Boolean, showFieldNames: Boolean): Tree {
     fun treeifySame(x: Any?) = treeify(x, escapeUnicode, showFieldNames)
+
+    fun <T> applyArray(name: String, seq: Sequence<T>) =
+      Tree.Apply(name, seq.map {x -> treeifySame(x)}.iterator())
+
     return when {
 
       x == null -> Tree.Literal("null")
@@ -133,9 +137,18 @@ interface Walker {
           Tree.Literal("non-empty iterator")
       }
 
-      x is Array<*> -> Tree.Apply("Array", x.asSequence().map {x -> treeify(x, escapeUnicode, showFieldNames)}.iterator())
+      x is BooleanArray -> applyArray("BooleanArray", x.asSequence())
+      x is ByteArray -> applyArray("ByteArray", x.asSequence())
+      x is CharArray -> applyArray("CharArray", x.asSequence())
+      x is DoubleArray -> applyArray("DoubleArray", x.asSequence())
+      x is FloatArray -> applyArray("FloatArray", x.asSequence())
+      x is IntArray -> applyArray("IntArray", x.asSequence())
+      x is LongArray -> applyArray("LongArray", x.asSequence())
+      x is ShortArray -> applyArray("ShortArray", x.asSequence())
 
-      x is Sequence<*> -> Tree.Apply("Sequence", x.map {x -> treeify(x, escapeUnicode, showFieldNames)}.iterator())
+      x is Array<*> -> applyArray("Array", x.asSequence())
+
+      x is Sequence<*> -> Tree.Apply("Sequence", x.map {x -> treeifySame(x)}.iterator())
 
       x is Pair<*, *> -> {
         // We could also do Tree.Infix(treeifySame(x.first), "to", treeifySame(x.second)), so it would be "a to b" not sure if that is better or worse
