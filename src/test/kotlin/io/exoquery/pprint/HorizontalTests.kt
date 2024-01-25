@@ -109,6 +109,16 @@ class HorizontalTests : FunSpec({
       test("Iterator") { Check(listOf('1', '2', '3'), "List('1', '2', '3')") }
 
       test("Array") { Check(arrayOf(1, 2, 3), "Array(1, 2, 3)") }
+
+      test("BooleanArray") { Check(booleanArrayOf(true, false, true), "BooleanArray(true, false, true)") }
+      test("ByteArray") { Check(byteArrayOf(1, 2, 3), "ByteArray(1, 2, 3)") }
+      test("CharArray") { Check(charArrayOf('a', 'b', 'c'), "CharArray('a', 'b', 'c')") }
+      test("DoubleArray") { Check(doubleArrayOf(1.0, 2.0, 3.0), "DoubleArray(1.0, 2.0, 3.0)") }
+      test("FloatArray") { Check(floatArrayOf(1.0F, 2.0F, 3.0F), "FloatArray(1.0F, 2.0F, 3.0F)") }
+      test("IntArray") { Check(intArrayOf(1, 2, 3), "IntArray(1, 2, 3)") }
+      test("LongArray") { Check(longArrayOf(1L, 2L, 3L), "LongArray(1L, 2L, 3L)") }
+      test("ShortArray") { Check(shortArrayOf(1, 2, 3), "ShortArray(1, 2, 3)") }
+
       test("Seq") { Check(listOf(1, 2, 3), "List(1, 2, 3)") }
       test("List") { Check(listOf("1", "2", "3"), """List("1", "2", "3")""") }
       //test("Vector") { Check(Vector('omg, 'wtf, 'bbq), """Vector('omg, 'wtf, 'bbq)""") }
