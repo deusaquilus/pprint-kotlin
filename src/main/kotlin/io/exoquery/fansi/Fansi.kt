@@ -755,8 +755,8 @@ final class Trie<T>(val strings: List<Pair<String, T>>){
     when {
       list.isEmpty() -> {
         val allChildChars = continuations.map{ (a, _) -> a[0] }
-        val minVal = allChildChars.min()
-        val maxVal = allChildChars.max()
+        val minVal = allChildChars.minOrNull() ?: error("No chars")
+        val maxVal = allChildChars.maxOrNull() ?: error("No chars")
 
         val arrVal = Array<Trie<T>?>(maxVal - minVal + 1, { null })
         for( (char, ss) in continuations.groupBy { (a, _) -> a[0] } ){

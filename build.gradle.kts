@@ -44,6 +44,15 @@ kotlin {
     jvmToolchain(8)
 }
 
+// backward compat for users on older versions of Kotlin
+// we use "data objects" in test code, so limit this to production code
+tasks.named<org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile>("compileKotlin") {
+    compilerOptions.apply {
+        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_6)
+        languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_6)
+    }
+}
+
 allprojects {
 
     val varintName = project.name
