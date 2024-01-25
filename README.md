@@ -257,7 +257,7 @@ println(CustomPPrinter4(PPrinterConfig(defaultShowFieldNames = false)).invoke(be
 ```
 
 
-## Fansi
+# Fansi for Kotlin
 
 > NOTE. Most of this is taken from the original Fansi documentation [here](https://raw.githubusercontent.com/com-lihaoyi/fansi/master/readme.md)
 
