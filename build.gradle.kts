@@ -18,15 +18,6 @@ allprojects {
     }
 }
 
-nexusPublishing {
-    repositories {
-        sonatype {
-            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
-            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
-        }
-    }
-}
-
 allprojects {
     group = "io.exoquery"
     version = "2.0.0"
@@ -42,10 +33,35 @@ subprojects {
     }
 
     publishing {
+        val user = System.getenv("SONATYPE_USERNAME")
+        val pass = System.getenv("SONATYPE_USERNAME")
+
+        repositories {
+            maven {
+                name = "Oss"
+                setUrl {
+                    val repositoryId = System.getenv("SONATYPE_REPOSITORY_ID") ?: error("Missing env variable: SONATYPE_REPOSITORY_ID")
+                    "https://s01.oss.sonatype.org/service/local/staging/deployByRepositoryId/$repositoryId/"
+                }
+                credentials {
+                    username = user
+                    password = pass
+                }
+            }
+            maven {
+                name = "Snapshot"
+                setUrl { "https://s01.oss.sonatype.org/content/repositories/snapshots/" }
+                credentials {
+                    username = user
+                    password = pass
+                }
+            }
+        }
+
         publications.withType<MavenPublication> {
             pom {
-                name.set("decomat")
-                description.set("DecoMat - Deconstructive Pattern Matching for Kotlin")
+                name.set("pprint-kotlin")
+                description.set("Pretty Printing for Kotlin")
                 url.set("https://github.com/deusaquilus/pprint-kotlin")
 
                 licenses {
@@ -67,14 +83,18 @@ subprojects {
 
                 scm {
                     url.set("https://github.com/exoquery/decomat/tree/main")
-                    connection.set("scm:git:git://github.com/ExoQuery/DecoMat.git")
-                    developerConnection.set("scm:git:ssh://github.com:ExoQuery/DecoMat.git")
+                    connection.set("scm:git:git://github.com/ExoQuery/pprint-kotlin.git")
+                    developerConnection.set("scm:git:ssh://github.com:ExoQuery/pprint-kotlin.git")
                 }
             }
         }
     }
 
     signing {
+        useInMemoryPgpKeys(
+            System.getenv("GPG_PRIVATE_KEY"),
+            System.getenv("GPG_PRIVATE_PASSWORD")
+        )
         sign(publishing.publications)
     }
 
