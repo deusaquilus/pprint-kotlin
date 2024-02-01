@@ -1,5 +1,6 @@
-plugins {
-  id("org.gradle.toolchains.foojay-resolver-convention") version "0.5.0"
-}
-rootProject.name = "pprint-kotlin"
+include(":pprint-kotlin-core", ":pprint-kotlin-kmp", ":pprint-kotlin")
 
+pluginManagement {
+}
+
+rootProject.name = "pprint-kotlin-root"
