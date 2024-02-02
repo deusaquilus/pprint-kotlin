@@ -98,7 +98,7 @@ subprojects {
         val signingKey = signingKeyMineDecoded.map {it.toChar()}.joinToString()
 
         useInMemoryPgpKeys(
-            String(decoder.decode(signingKey.replace("\\r\\n|\\r|\\n", "") )),
+            signingKey,
             System.getenv("NEW_SIGNING_KEY_ID_BASE64_PASS")
         )
         sign(publishing.publications)
