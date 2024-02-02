@@ -93,7 +93,8 @@ subprojects {
     signing {
         val signingKeyRaw = System.getenv("NEW_SIGNING_KEY_ID_BASE64")
         if (signingKeyRaw == null) error("ERROR: No Signing Key Found")
-        // Key is all on one line (i.e. newlines in it were all remvoed)
+        // Seems like the right way was to have newlines after all but not the
+        // BEGIN PGP PRIVATE KEY BLOCK as part of the key.
         val signingKey = "-----BEGIN PGP PRIVATE KEY BLOCK-----\n\n${signingKeyRaw}\n-----END PGP PRIVATE KEY BLOCK-----"
         useInMemoryPgpKeys(
             System.getenv("NEW_SIGNING_KEY_ID_BASE64_ID"),

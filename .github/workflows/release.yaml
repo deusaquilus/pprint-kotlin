@@ -8,7 +8,7 @@ jobs:
       runs-on: ubuntu-latest
       name: Create staging repository
       outputs:
-        repository-id: ${{ steps.create.outputs.repository-id }}
+        repository_id: ${{ steps.create.outputs.repository_id }}
       steps:
         - id: create
           uses: nexus-actions/create-nexus-staging-repo@main
@@ -35,7 +35,7 @@ jobs:
             - os: windows-latest
               publish_command: publishMingwX64PublicationToOss
       env:
-        SONATYPE_REPOSITORY_ID: ${{ needs.create_staging_repository.outputs.repository-id }}
+        SONATYPE_REPOSITORY_ID: ${{ needs.create_staging_repository.outputs.repository_id }}
         SONATYPE_USERNAME: ${{ secrets.ORG_GRADLE_PROJECT_SONATYPEUSERNAME }}
         SONATYPE_PASSWORD: ${{ secrets.ORG_GRADLE_PROJECT_SONATYPEPASSWORD }}
         NEW_SIGNING_KEY_ID_BASE64: ${{ secrets.NEW_SIGNING_KEY_ID_BASE64 }}
