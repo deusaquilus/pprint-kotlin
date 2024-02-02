@@ -14,9 +14,14 @@ plugins {
 
 kotlin {
   val isLocal = project.hasProperty("local")
-  val isLinux = project.property("platform") == "linux"
-  val isMac = project.property("platform") == "mac"
-  val isWindows = project.property("platform") == "windows"
+  val platform =
+    if (project.hasProperty("platform"))
+      project.property("platform")
+    else
+      "any"
+  val isLinux = platform == "linux"
+  val isMac = platform == "mac"
+  val isWindows = platform == "windows"
 
   if (isLinux || isLocal) {
     jvm {
