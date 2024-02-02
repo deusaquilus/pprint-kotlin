@@ -16,6 +16,8 @@ jobs:
             username: ${{ secrets.ORG_GRADLE_PROJECT_SONATYPEPASSWORD }}
             password: ${{ secrets.ORG_GRADLE_PROJECT_SONATYPEUSERNAME }}
             staging_profile_id: ${{ secrets.SONATYPE_PROFILE_ID }}
+            # Defaults to the https://oss.sonatype.org, not https://s01.oss.sonatype.org
+            base_url: https://s01.oss.sonatype.org/service/local/
             description: ${{ github.repository }}/${{ github.workflow }}#${{ github.run_number }}
 
     release:
