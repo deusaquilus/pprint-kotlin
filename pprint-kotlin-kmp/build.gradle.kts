@@ -24,6 +24,8 @@ kotlin {
   androidNativeX86()
   androidNativeArm32()
   androidNativeArm64()
+  iosX64()
+  iosArm64()
 
   js {
     browser()
