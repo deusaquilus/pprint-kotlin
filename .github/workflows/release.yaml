@@ -19,7 +19,7 @@ jobs:
             description: ${{ github.repository }}/${{ github.workflow }}#${{ github.run_number }}
 
     release:
-      needs: [create-staging-repository]
+      needs: [create_staging_repository]
       runs-on: ${{ matrix.os }}
       strategy:
         matrix:
