@@ -93,8 +93,7 @@ subprojects {
     signing {
         val signingKeyRaw = System.getenv("NEW_SIGNING_KEY_ID_BASE64")
         if (signingKeyRaw == null) error("ERROR: No Signing Key Found")
-        val signingKeyMineDecoded = java.util.Base64.getMimeDecoder().decode(signingKeyRaw)
-        val signingKey = signingKeyMineDecoded.map {it.toChar()}.joinToString()
+        val signingKey = signingKeyRaw.replace("\\r\\n|\\r|\\n".toRegex(), "")
         useInMemoryPgpKeys(
             System.getenv("NEW_SIGNING_KEY_ID_BASE64_ID"),
             signingKey,
