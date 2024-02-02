@@ -91,8 +91,9 @@ subprojects {
     }
 
     signing {
-        val signingKey = System.getenv("NEW_SIGNING_KEY_ID_BASE64")
-        if (signingKey == null) error("ERROR: No Signing Key Found")
+        val signingKeyRaw = System.getenv("NEW_SIGNING_KEY_ID_BASE64")
+        if (signingKeyRaw == null) error("ERROR: No Signing Key Found")
+        val signingKey = "-----BEGIN PGP PRIVATE KEY BLOCK-----\n\n${signingKeyRaw}\n-----END PGP PRIVATE KEY BLOCK-----"
         useInMemoryPgpKeys(
             System.getenv("NEW_SIGNING_KEY_ID_BASE64_ID"),
             signingKey,
