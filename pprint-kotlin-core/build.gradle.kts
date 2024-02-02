@@ -13,36 +13,50 @@ plugins {
 }
 
 kotlin {
-  jvm {
-    jvmToolchain(11)
-  }
-  js {
-    browser()
-    nodejs()
+  val isLocal = project.hasProperty("local")
+  val isLinux = project.property("platform") == "linux"
+  val isMac = project.property("platform") == "mac"
+  val isWindows = project.property("platform") == "windows"
+
+  if (isLinux || isLocal) {
+    jvm {
+      jvmToolchain(11)
+    }
+    js {
+      browser()
+      nodejs()
+    }
+
+    linuxX64()
+    linuxArm64()
+
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmWasi()
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs()
+
+    androidNativeX64()
+    androidNativeX86()
+    androidNativeArm32()
+    androidNativeArm64()
   }
 
-  linuxX64()
-  linuxArm64()
-  macosX64()
-  macosArm64()
-  mingwX64()
-  androidNativeX64()
-  androidNativeX86()
-  androidNativeArm32()
-  androidNativeArm64()
-  iosX64()
-  iosArm64()
-  iosSimulatorArm64()
-  tvosX64()
-  tvosArm64()
-  watchosX64()
-  watchosArm32()
-  watchosArm64()
+  if (isMac || isLocal) {
+    macosX64()
+    macosArm64()
+    iosX64()
+    iosArm64()
+    iosSimulatorArm64()
+    tvosX64()
+    tvosArm64()
+    watchosX64()
+    watchosArm32()
+    watchosArm64()
+  }
 
-  @OptIn(ExperimentalWasmDsl::class)
-  wasmWasi()
-  @OptIn(ExperimentalWasmDsl::class)
-  wasmJs()
+  if (isWindows || isLocal) {
+    mingwX64()
+  }
 
   sourceSets {
     commonMain {

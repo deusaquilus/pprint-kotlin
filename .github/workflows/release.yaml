@@ -30,10 +30,13 @@ jobs:
             - os: ubuntu-latest
               # On ubuntu publish everything you can i.e. the linuxX64 and jvm binaries
               publish_command: publishAllPublicationsToOss
+              platform: linux
             - os: macOS-latest
               publish_command: publishAllPublicationsToOss
+              platform: mac
             - os: windows-latest
               publish_command: publishMingwX64PublicationToOss
+              platform: windows
       env:
         SONATYPE_REPOSITORY_ID: ${{ needs.create_staging_repository.outputs.repository_id }}
         SONATYPE_USERNAME: ${{ secrets.ORG_GRADLE_PROJECT_SONATYPEUSERNAME }}
@@ -49,4 +52,4 @@ jobs:
             distribution: 'adopt'
         - name: Validate Gradle wrapper
           uses: gradle/wrapper-validation-action@v1
-        - run: ./gradlew build ${{ matrix.publish_command }} -no-daemon --no-parallel -x test --stacktrace
+        - run: ./gradlew build ${{ matrix.publish_command }} -Pplatform=${{ platform }} -no-daemon --no-parallel -x test --stacktrace
