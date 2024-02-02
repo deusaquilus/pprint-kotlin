@@ -18,7 +18,7 @@ dependencies {
   testImplementation(kotlin("test"))
   testImplementation("io.kotest:kotest-runner-junit5:5.8.0")
   implementation(kotlin("reflect"))
-  implementation(project(":pprint-kotlin-core"))
+  api(project(":pprint-kotlin-core"))
 }
 
 publishing {

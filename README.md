@@ -16,6 +16,7 @@ implementation("io.exoquery:pprint-kotlin:1.1.0")
 // }
 // Then add the following to your dependencies
 // implementation("io.exoquery:pprint-kotlin-kmp:1.1.0")
+// implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.2")
 ```
 
 Then use the library like this: 
@@ -321,7 +322,7 @@ kotlin {
     commonMain {
       dependencies {
         implementation("io.exoquery:pprint-kotlin-kmp:1.2.2")
-        // implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.2")
+        implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.2")
       }
     }
   }

@@ -26,8 +26,8 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
-        implementation(project(":pprint-kotlin-core"))
-        api("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.2")
+        api(project(":pprint-kotlin-core"))
+        implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.2")
       }
     }
 
