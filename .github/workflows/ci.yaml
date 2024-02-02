@@ -14,10 +14,10 @@ jobs:
             build_command: build
           - os: macOS-latest
             platform: mac
-            build_command: build -x :pprint-kotlin
+            build_command: build -x :pprint-kotlin:build
           - os: windows-latest
             platform: windows
-            build_command: build -x :pprint-kotlin
+            build_command: build -x :pprint-kotlin:build
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 11
