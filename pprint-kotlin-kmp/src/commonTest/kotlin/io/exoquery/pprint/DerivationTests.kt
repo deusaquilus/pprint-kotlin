@@ -2,7 +2,6 @@ package io.exoquery.pprint
 
 import io.exoquery.kmp.pprint
 import io.exoquery.kmp.pprint.PPrinter
-import kotlinx.datetime.LocalDate
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
