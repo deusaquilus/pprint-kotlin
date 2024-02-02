@@ -80,18 +80,6 @@ kotlin {
         implementation(kotlin("test-annotations-common"))
       }
     }
-
-    jvmMain {
-      dependencies {
-        api(kotlin("reflect"))
-      }
-    }
-
-    jvmTest {
-      dependencies {
-        implementation("io.kotest:kotest-runner-junit5:5.8.0")
-      }
-    }
   }
 }
 

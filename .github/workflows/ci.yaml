@@ -8,6 +8,13 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest, macOS-latest, windows-latest ]
+        include:
+          - os: ubuntu-latest
+            platform: linux
+          - os: macOS-latest
+            platform: mac
+          - os: windows-latest
+            platform: windows
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 11
@@ -17,4 +24,4 @@ jobs:
           distribution: 'adopt'
       - name: Validate Gradle wrapper
         uses: gradle/wrapper-validation-action@v1
-      - run: ./gradlew build test --stacktrace -Plocal
+      - run: ./gradlew build test -Pplatform=${{ matrix.platform }} --stacktrace -Pnosign
