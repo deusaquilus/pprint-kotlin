@@ -95,7 +95,7 @@ subprojects {
         val signingKey = System.getenv("NEW_SIGNING_KEY_ID_BASE64")
         if (signingKey == null) error("ERROR: No Signing Key Found")
         useInMemoryPgpKeys(
-            String(decoder.decode(signingKey)),
+            String(decoder.decode(signingKey.replace("\\r\\n|\\r|\\n", "") )),
             System.getenv("NEW_SIGNING_KEY_ID_BASE64_PASS")
         )
         sign(publishing.publications)
