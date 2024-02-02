@@ -20,7 +20,10 @@ jobs:
 
     release:
       needs: [create-staging-repository]
-      runs-on: ubuntu-latest
+      runs-on: ${{ matrix.os }}
+      strategy:
+        matrix:
+          os: [ ubuntu-latest, macOS-latest, windows-latest ]
       env:
         SONATYPE_REPOSITORY_ID: ${{ needs.create_staging_repository.outputs.repository-id }}
         SONATYPE_USERNAME: ${{ secrets.ORG_GRADLE_PROJECT_SONATYPEPASSWORD }}
