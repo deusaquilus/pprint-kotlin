@@ -32,10 +32,10 @@ jobs:
               publish_command: publishAllPublicationsToOss
               platform: linux
             - os: macOS-latest
-              publish_command: publishAllPublicationsToOss
+              publish_command: publishAllPublicationsToOss -x :pprint-kotlin:build
               platform: mac
             - os: windows-latest
-              publish_command: publishMingwX64PublicationToOss
+              publish_command: publishMingwX64PublicationToOss -x :pprint-kotlin:build
               platform: windows
       env:
         SONATYPE_REPOSITORY_ID: ${{ needs.create_staging_repository.outputs.repository_id }}
