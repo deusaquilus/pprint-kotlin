@@ -38,8 +38,8 @@ jobs:
         SONATYPE_REPOSITORY_ID: ${{ needs.create_staging_repository.outputs.repository-id }}
         SONATYPE_USERNAME: ${{ secrets.ORG_GRADLE_PROJECT_SONATYPEUSERNAME }}
         SONATYPE_PASSWORD: ${{ secrets.ORG_GRADLE_PROJECT_SONATYPEPASSWORD }}
-        GPG_PRIVATE_KEY: ${{ secrets.SIGNING_KEY_ID }}
-        GPG_PRIVATE_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+        NEW_SIGNING_KEY_ID_BASE64: ${{ secrets.NEW_SIGNING_KEY_ID_BASE64 }}
+        NEW_SIGNING_KEY_ID_BASE64_PASS: ${{ secrets.NEW_SIGNING_KEY_ID_BASE64_PASS }}
       steps:
         - uses: actions/checkout@v3
         - name: Set up JDK 11

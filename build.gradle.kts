@@ -91,9 +91,12 @@ subprojects {
     }
 
     signing {
+        val decoder = java.util.Base64.getDecoder()
+        val signingKey = System.getenv("NEW_SIGNING_KEY_ID_BASE64")
+        if (signingKey == null) error("ERROR: No Signing Key Found")
         useInMemoryPgpKeys(
-            System.getenv("GPG_PRIVATE_KEY").chunked(64).joinToString("\n"),
-            System.getenv("GPG_PRIVATE_PASSWORD")
+            String(decoder.decode(signingKey)),
+            System.getenv("NEW_SIGNING_KEY_ID_BASE64_PASS")
         )
         sign(publishing.publications)
     }
