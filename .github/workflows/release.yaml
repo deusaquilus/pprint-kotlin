@@ -31,7 +31,7 @@ jobs:
               # On ubuntu publish everything you can i.e. the linuxX64 and jvm binaries
               publish_command: publishAllPublicationsToOss
             - os: macOS-latest
-              publish_command: publishMacosX64PublicationToOss
+              publish_command: publishAllPublicationsToOss
             - os: windows-latest
               publish_command: publishMingwX64PublicationToOss
       env:

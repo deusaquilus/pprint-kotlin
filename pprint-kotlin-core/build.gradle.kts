@@ -27,6 +27,17 @@ kotlin {
   androidNativeArm64()
   iosX64()
   iosArm64()
+  iosSimulatorArm64()
+  tvosX64()
+  tvosArm64()
+  watchosX64()
+  watchosArm32()
+  watchosArm64()
+
+  @OptIn(ExperimentalWasmDsl::class)
+  wasmWasi()
+  @OptIn(ExperimentalWasmDsl::class)
+  wasmJs()
 
   js {
     browser()
