@@ -27,4 +27,4 @@ jobs:
           distribution: 'adopt'
       - name: Validate Gradle wrapper
         uses: gradle/wrapper-validation-action@v1
-      - run: ./gradlew ${{ matrix.build_command }} -Pplatform=${{ matrix.platform }} --stacktrace -Pnosign
+      - run: ./gradlew ${{ matrix.build_command }} -Pplatform=${{ matrix.platform }} --stacktrace -Pnosign -PisCI

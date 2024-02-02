@@ -12,7 +12,7 @@ plugins {
 }
 
 kotlin {
-  val isLocal = project.hasProperty("local")
+  val isCI = project.hasProperty("isCI")
   val platform =
     if (project.hasProperty("platform"))
       project.property("platform")
@@ -22,7 +22,7 @@ kotlin {
   val isMac = platform == "mac"
   val isWindows = platform == "windows"
 
-  if (isLinux || isLocal) {
+  if (isLinux || !isCI) {
     jvm {
       jvmToolchain(11)
     }
@@ -45,7 +45,7 @@ kotlin {
     androidNativeArm64()
   }
 
-  if (isMac || isLocal) {
+  if (isMac || !isCI) {
     macosX64()
     macosArm64()
     iosX64()
@@ -58,7 +58,7 @@ kotlin {
     watchosArm64()
   }
 
-  if (isWindows || isLocal) {
+  if (isWindows || !isCI) {
     mingwX64()
   }
 
