@@ -14,7 +14,7 @@ plugins {
 
 kotlin {
   jvm {
-    jvmToolchain(8)
+    jvmToolchain(11)
   }
 
   linuxX64()
