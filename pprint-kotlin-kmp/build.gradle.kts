@@ -15,6 +15,10 @@ kotlin {
   jvm {
     jvmToolchain(11)
   }
+  js {
+    browser()
+    nodejs()
+  }
 
   linuxX64()
   linuxArm64()
@@ -38,11 +42,6 @@ kotlin {
   wasmWasi()
   @OptIn(ExperimentalWasmDsl::class)
   wasmJs()
-
-  js {
-    browser()
-    nodejs()
-  }
 
   sourceSets {
     commonMain {

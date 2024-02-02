@@ -16,8 +16,13 @@ kotlin {
   jvm {
     jvmToolchain(11)
   }
+  js {
+    browser()
+    nodejs()
+  }
 
   linuxX64()
+  linuxArm64()
   macosX64()
   macosArm64()
   mingwX64()
@@ -33,6 +38,11 @@ kotlin {
   watchosX64()
   watchosArm32()
   watchosArm64()
+
+  @OptIn(ExperimentalWasmDsl::class)
+  wasmWasi()
+  @OptIn(ExperimentalWasmDsl::class)
+  wasmJs()
 
   @OptIn(ExperimentalWasmDsl::class)
   wasmWasi()
