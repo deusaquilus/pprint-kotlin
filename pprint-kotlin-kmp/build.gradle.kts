@@ -84,8 +84,10 @@ kotlin {
 }
 
 
-tasks.named<Test>("jvmTest") {
-  useJUnitPlatform()
+if (project.hasProperty("platform") && project.property("platform") == "linux") {
+  tasks.named<Test>("jvmTest") {
+    useJUnitPlatform()
+  }
 }
 
 tasks.withType<AbstractTestTask>().configureEach {

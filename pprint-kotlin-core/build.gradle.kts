@@ -80,10 +80,6 @@ kotlin {
   }
 }
 
-tasks.named<Test>("jvmTest") {
-  useJUnitPlatform()
-}
-
 tasks.withType<AbstractTestTask>().configureEach {
   testLogging {
     showStandardStreams = true
