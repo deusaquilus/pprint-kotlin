@@ -13,8 +13,8 @@ jobs:
         - id: create
           uses: nexus-actions/create-nexus-staging-repo@main
           with:
-            username: ${{ secrets.ORG_GRADLE_PROJECT_SONATYPEPASSWORD }}
-            password: ${{ secrets.ORG_GRADLE_PROJECT_SONATYPEUSERNAME }}
+            username: ${{ secrets.ORG_GRADLE_PROJECT_SONATYPEUSERNAME }}
+            password: ${{ secrets.ORG_GRADLE_PROJECT_SONATYPEPASSWORD }}
             staging_profile_id: ${{ secrets.SONATYPE_PROFILE_ID }}
             # Defaults to the https://oss.sonatype.org, not https://s01.oss.sonatype.org
             base_url: https://s01.oss.sonatype.org/service/local/
@@ -36,8 +36,8 @@ jobs:
               publish_command: publishMingwX64PublicationToOss
       env:
         SONATYPE_REPOSITORY_ID: ${{ needs.create_staging_repository.outputs.repository-id }}
-        SONATYPE_USERNAME: ${{ secrets.ORG_GRADLE_PROJECT_SONATYPEPASSWORD }}
-        SONATYPE_PASSWORD: ${{ secrets.ORG_GRADLE_PROJECT_SONATYPEUSERNAME }}
+        SONATYPE_USERNAME: ${{ secrets.ORG_GRADLE_PROJECT_SONATYPEUSERNAME }}
+        SONATYPE_PASSWORD: ${{ secrets.ORG_GRADLE_PROJECT_SONATYPEPASSWORD }}
         GPG_PRIVATE_KEY: ${{ secrets.SIGNING_KEY_ID }}
         GPG_PRIVATE_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
       steps:
