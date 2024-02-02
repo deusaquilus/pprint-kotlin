@@ -20,6 +20,10 @@ kotlin {
   macosX64()
   macosArm64()
   mingwX64()
+  androidNativeX64()
+  androidNativeX86()
+  androidNativeArm32()
+  androidNativeArm64()
 
   js {
     browser()

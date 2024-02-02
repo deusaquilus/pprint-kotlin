@@ -91,25 +91,24 @@ subprojects {
     }
 
     signing {
-        val signingKeyRaw = System.getenv("NEW_SIGNING_KEY_ID_BASE64")
-        if (signingKeyRaw == null) error("ERROR: No Signing Key Found")
-        // Seems like the right way was to have newlines after all the exported (ascii armored) lines
-        // and you can put them into the github-var with newlines but if you
-        // include the "-----BEGIN PGP PRIVATE KEY BLOCK-----" and "-----END PGP PRIVATE KEY BLOCK-----"
-        // parts with that then errors happen. Have a look at https://github.com/gradle/gradle/issues/15718 for more detail
-        // Ultimately however `iurysza` is only partially correct and they key-itself does not need to be escaped
-        // and can be put into a github-var with newlines.
-        val signingKey = "-----BEGIN PGP PRIVATE KEY BLOCK-----\n\n${signingKeyRaw}\n-----END PGP PRIVATE KEY BLOCK-----"
-        useInMemoryPgpKeys(
-            System.getenv("NEW_SIGNING_KEY_ID_BASE64_ID"),
-            signingKey,
-            System.getenv("NEW_SIGNING_KEY_ID_BASE64_PASS")
-        )
-        sign(publishing.publications)
-    }
-
-    tasks.withType<Sign> {
-        onlyIf { !project.hasProperty("nosign") }
+        if (!project.hasProperty("nosign")) {
+            val signingKeyRaw = System.getenv("NEW_SIGNING_KEY_ID_BASE64")
+            if (signingKeyRaw == null) error("ERROR: No Signing Key Found")
+            // Seems like the right way was to have newlines after all the exported (ascii armored) lines
+            // and you can put them into the github-var with newlines but if you
+            // include the "-----BEGIN PGP PRIVATE KEY BLOCK-----" and "-----END PGP PRIVATE KEY BLOCK-----"
+            // parts with that then errors happen. Have a look at https://github.com/gradle/gradle/issues/15718 for more detail
+            // Ultimately however `iurysza` is only partially correct and they key-itself does not need to be escaped
+            // and can be put into a github-var with newlines.
+            val signingKey =
+                "-----BEGIN PGP PRIVATE KEY BLOCK-----\n\n${signingKeyRaw}\n-----END PGP PRIVATE KEY BLOCK-----"
+            useInMemoryPgpKeys(
+                System.getenv("NEW_SIGNING_KEY_ID_BASE64_ID"),
+                signingKey,
+                System.getenv("NEW_SIGNING_KEY_ID_BASE64_PASS")
+            )
+            sign(publishing.publications)
+        }
     }
 
     // Fix for Kotlin issue: https://youtrack.jetbrains.com/issue/KT-61313
