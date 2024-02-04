@@ -142,6 +142,10 @@ subprojects {
         }
     }
 
+    // Was having odd issues happening in CI releases like this:
+    // e.g. Task ':pprint-kotlin-core:publish<AndroidNativeArm32>PublicationToOssRepository' uses this output of task ':pprint-kotlin-core:sign<AndroidNativeArm64>Publication' without declaring an explicit or implicit dependency.
+    // I tried a few things that caused other issues. Ultimately the working solution I got from here:
+    // https://github.com/gradle/gradle/issues/26091#issuecomment-1722947958
     tasks.withType<AbstractPublishToMaven>().configureEach {
         val signingTasks = tasks.withType<Sign>()
         mustRunAfter(signingTasks)

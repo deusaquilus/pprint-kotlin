@@ -8,14 +8,14 @@ This is a port of Li Haoyi's excellent Scala pretty-printing library into Kotlin
 Add the following to your build.gradle.kts:
 
 ```kotlin
-implementation("io.exoquery:pprint-kotlin:1.1.0")
+implementation("io.exoquery:pprint-kotlin:2.0.0")
 
 // For Kotlin Multiplatform add serialization to your plugins:
 // plugins {
 //   kotlin("plugin.serialization") version "1.9.22"
 // }
 // Then add the following to your dependencies
-// implementation("io.exoquery:pprint-kotlin-kmp:1.1.0")
+// implementation("io.exoquery:pprint-kotlin-kmp:2.0.0")
 // implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.2")
 ```
 
