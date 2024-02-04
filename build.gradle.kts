@@ -143,5 +143,11 @@ subprojects {
         tasks.findByName("compileTestKotlin$pubName")?.let {
             mustRunAfter(it)
         }
+
+        // Task ':pprint-kotlin-core:publish<platform>PublicationToOssRepository' uses this output of task ':pprint-kotlin-core:sign<platform>Publication' without declaring an explicit or implicit dependency.
+        // e.g. Task ':pprint-kotlin-core:publishAndroidNativeArm32PublicationToOssRepository' uses this output of task ':pprint-kotlin-core:signAndroidNativeArm64Publication' without declaring an explicit or implicit dependency.
+        tasks.findByName("publish${pubName}PublicationToOssRepository")?.let {
+            mustRunAfter(it)
+        }
     }
 }
