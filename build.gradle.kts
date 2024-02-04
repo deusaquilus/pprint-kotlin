@@ -90,9 +90,14 @@ subprojects {
         }
     }
 
+    val isCI = project.hasProperty("isCI")
+    val isLocal = !isCI
+    val noSign = project.hasProperty("nosign")
+    val doNotSign = isLocal || noSign
+
     signing {
         // Sign if we're not doing a local build and we haven't specifically disabled it
-        if (!project.hasProperty("local") && !project.hasProperty("nosign")) {
+        if (!doNotSign) {
             val signingKeyRaw = System.getenv("NEW_SIGNING_KEY_ID_BASE64")
             if (signingKeyRaw == null) error("ERROR: No Signing Key Found")
             // Seems like the right way was to have newlines after all the exported (ascii armored) lines
