@@ -47,9 +47,9 @@ publishing {
       artifact(tasks["sourcesJar"])
 
       pom {
-        name.set("decomat")
-        description.set("DecoMat - Deconstructive Pattern Matching for Kotlin")
-        url.set("https://github.com/exoquery/decomat")
+        name.set("pprint-kotlin")
+        description.set("Pretty Printing for Kotlin")
+        url.set("https://github.com/deusaquilus/pprint-kotlin")
 
         licenses {
           license {
@@ -69,9 +69,9 @@ publishing {
         }
 
         scm {
-          url.set("https://github.com/exoquery/decomat/tree/main")
-          connection.set("scm:git:git://github.com/ExoQuery/DecoMat.git")
-          developerConnection.set("scm:git:ssh://github.com:ExoQuery/DecoMat.git")
+          url.set("https://github.com/exoquery/pprint-kotlin/tree/main")
+          connection.set("scm:git:git://github.com/ExoQuery/pprint-kotlin.git")
+          developerConnection.set("scm:git:ssh://github.com:ExoQuery/pprint-kotlin.git")
         }
       }
     }

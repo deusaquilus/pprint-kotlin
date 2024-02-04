@@ -32,9 +32,19 @@ subprojects {
         plugin("signing")
     }
 
+    val dokkaHtml by tasks.getting(org.jetbrains.dokka.gradle.DokkaTask::class)
+
     publishing {
         val user = System.getenv("SONATYPE_USERNAME")
         val pass = System.getenv("SONATYPE_PASSWORD")
+
+        tasks {
+            val javadocJar by creating(Jar::class) {
+                dependsOn(dokkaHtml)
+                archiveClassifier.set("javadoc")
+                from(dokkaHtml.outputDirectory)
+            }
+        }
 
         repositories {
             maven {
@@ -59,6 +69,8 @@ subprojects {
         }
 
         publications.withType<MavenPublication> {
+            artifact(tasks["javadocJar"])
+
             pom {
                 name.set("pprint-kotlin")
                 description.set("Pretty Printing for Kotlin")
@@ -82,7 +94,7 @@ subprojects {
                 }
 
                 scm {
-                    url.set("https://github.com/exoquery/decomat/tree/main")
+                    url.set("https://github.com/exoquery/pprint-kotlin/tree/main")
                     connection.set("scm:git:git://github.com/ExoQuery/pprint-kotlin.git")
                     developerConnection.set("scm:git:ssh://github.com:ExoQuery/pprint-kotlin.git")
                 }
