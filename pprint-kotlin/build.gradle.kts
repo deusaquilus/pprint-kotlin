@@ -26,24 +26,11 @@ publishing {
 
   val dokkaHtml by tasks.getting(org.jetbrains.dokka.gradle.DokkaTask::class)
 
-  tasks {
-    val javadocJar by creating(Jar::class) {
-      dependsOn(dokkaHtml)
-      archiveClassifier.set("javadoc")
-      from(dokkaHtml.outputDirectory)
-    }
-    val sourcesJar by creating(Jar::class) {
-      archiveClassifier.set("sources")
-      from(sourceSets["main"].allSource)
-    }
-  }
-
   publications {
     create<MavenPublication>("mavenJava") {
       from(components["kotlin"])
       artifactId = varintName
 
-      artifact(tasks["javadocJar"])
       artifact(tasks["sourcesJar"])
 
       pom {
