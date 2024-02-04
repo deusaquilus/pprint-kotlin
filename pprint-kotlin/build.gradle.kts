@@ -26,6 +26,13 @@ publishing {
 
   val dokkaHtml by tasks.getting(org.jetbrains.dokka.gradle.DokkaTask::class)
 
+  tasks {
+    val sourcesJar by creating(Jar::class) {
+      archiveClassifier.set("sources")
+      from(sourceSets["main"].allSource)
+    }
+  }
+
   publications {
     create<MavenPublication>("mavenJava") {
       from(components["kotlin"])
