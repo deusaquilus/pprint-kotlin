@@ -32,6 +32,13 @@ subprojects {
         plugin("signing")
     }
 
+    val dokkaHtml by tasks.getting(org.jetbrains.dokka.gradle.DokkaTask::class)
+    val javadocJar: TaskProvider<Jar> by tasks.registering(Jar::class) {
+        dependsOn(dokkaHtml)
+        archiveClassifier.set("javadoc")
+        from(dokkaHtml.outputDirectory)
+    }
+
     publishing {
         val user = System.getenv("SONATYPE_USERNAME")
         val pass = System.getenv("SONATYPE_PASSWORD")
@@ -59,19 +66,7 @@ subprojects {
         }
 
         publications.withType<MavenPublication> {
-            val publication = this
-            val dokkaJar = project.tasks.register("${publication.name}DokkaJar", Jar::class) {
-                group = JavaBasePlugin.DOCUMENTATION_GROUP
-                description = "Assembles Kotlin docs with Dokka into a Javadoc jar"
-                archiveClassifier.set("javadoc")
-                from(project.tasks.named("dokkaHtml"))
-
-                // Each archive name should be distinct, to avoid implicit dependency issues.
-                // We use the same format as the sources Jar tasks.
-                // https://youtrack.jetbrains.com/issue/KT-46466
-                archiveBaseName.set("${archiveBaseName.get()}-${publication.name}")
-            }
-            artifact(dokkaJar)
+            artifact(javadocJar)
 
             pom {
                 name.set("pprint-kotlin")
@@ -145,5 +140,10 @@ subprojects {
         tasks.findByName("compileTestKotlin$pubName")?.let {
             mustRunAfter(it)
         }
+    }
+
+    tasks.withType<AbstractPublishToMaven>().configureEach {
+        val signingTasks = tasks.withType<Sign>()
+        mustRunAfter(signingTasks)
     }
 }

@@ -52,4 +52,4 @@ jobs:
             distribution: 'adopt'
         - name: Validate Gradle wrapper
           uses: gradle/wrapper-validation-action@v1
-        - run: ./gradlew ${{ matrix.publish_command }} -Pplatform=${{ matrix.platform }} -PisCI -no-daemon --no-parallel --stacktrace
+        - run: ./gradlew ${{ matrix.publish_command }} -Pplatform=${{ matrix.platform }} -PisCI -no-daemon --stacktrace
