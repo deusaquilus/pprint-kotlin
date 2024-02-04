@@ -5,7 +5,9 @@ This is a port of Li Haoyi's excellent Scala pretty-printing library into Kotlin
 
 ## Usage
 
-PPrint for Kotlin is available in both JVM and Kotlin Multiplatform. Add the following to your build.gradle.kts:
+PPrint for Kotlin is available in both JVM and Kotlin Multiplatform flavors. The JVM flavor uses `kotlin-reflect`, the KMP flavor uses `kotlinx-serialization`.
+
+Add the following to your build.gradle.kts:
 
 ```kotlin
 implementation("io.exoquery:pprint-kotlin:2.0.0")
