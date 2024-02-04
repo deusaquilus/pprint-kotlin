@@ -35,7 +35,7 @@ jobs:
               publish_command: build publishAllPublicationsToOss -x :pprint-kotlin:build -x :pprint-kotlin:publishAllPublicationsToOss
               platform: mac
             - os: windows-latest
-              publish_command: build publishMingwX64PublicationToOss -x :pprint-kotlin:build -x :pprint-kotlin:publishMingwX64PublicationToOss
+              publish_command: build publishMingwX64PublicationToOss -x :pprint-kotlin:build # [No such task in pprint-kotlin as:] -x :pprint-kotlin:publishMingwX64PublicationToOss
               platform: windows
       env:
         SONATYPE_REPOSITORY_ID: ${{ needs.create_staging_repository.outputs.repository_id }}
