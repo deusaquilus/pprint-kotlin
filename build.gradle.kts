@@ -33,18 +33,16 @@ subprojects {
     }
 
     val dokkaHtml by tasks.getting(org.jetbrains.dokka.gradle.DokkaTask::class)
+    val javadocJar: TaskProvider<Jar> by tasks.registering(Jar::class) {
+        dependsOn(dokkaHtml)
+        archiveClassifier.set("javadoc")
+        from(dokkaHtml.outputDirectory)
+    }
+
 
     publishing {
         val user = System.getenv("SONATYPE_USERNAME")
         val pass = System.getenv("SONATYPE_PASSWORD")
-
-        tasks {
-            val javadocJar by creating(Jar::class) {
-                dependsOn(dokkaHtml)
-                archiveClassifier.set("javadoc")
-                from(dokkaHtml.outputDirectory)
-            }
-        }
 
         repositories {
             maven {
@@ -69,7 +67,7 @@ subprojects {
         }
 
         publications.withType<MavenPublication> {
-            artifact(tasks["javadocJar"])
+            artifact(javadocJar)
 
             pom {
                 name.set("pprint-kotlin")
@@ -141,12 +139,6 @@ subprojects {
         }
         // Task ':compileTestKotlin<platform>' uses this output of task ':sign<platform>Publication' without declaring an explicit or implicit dependency
         tasks.findByName("compileTestKotlin$pubName")?.let {
-            mustRunAfter(it)
-        }
-
-        // Task ':pprint-kotlin-core:publish<platform>PublicationToOssRepository' uses this output of task ':pprint-kotlin-core:sign<platform>Publication' without declaring an explicit or implicit dependency.
-        // e.g. Task ':pprint-kotlin-core:publishAndroidNativeArm32PublicationToOssRepository' uses this output of task ':pprint-kotlin-core:signAndroidNativeArm64Publication' without declaring an explicit or implicit dependency.
-        tasks.findByName("publish${pubName}PublicationToOssRepository")?.let {
             mustRunAfter(it)
         }
     }
