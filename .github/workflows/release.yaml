@@ -32,7 +32,7 @@ jobs:
               publish_command: build publishAllPublicationsToOss
               platform: linux
             - os: macOS-latest
-              publish_command: build publishMacosX64PublicationToOss publishMacosArm64PublicationToOss publishIosX64PublicationToOss publishIosArm64PublicationToOss publishIosSimulatorArm64PublicationToOss publishTvosX64PublicationToOss publishTvosArm64PublicationToOss publishWatchosX64PublicationToOss publishWatchosArm32PublicationToOss publishWatchosArm64PublicationToOss -x :pprint-kotlin:build -x :pprint-kotlin:publishMacosX64PublicationToOss -x :pprint-kotlin:publishMacosArm64PublicationToOss -x :pprint-kotlin:publishIosX64PublicationToOss -x :pprint-kotlin:publishIosArm64PublicationToOss -x :pprint-kotlin:publishIosSimulatorArm64PublicationToOss -x :pprint-kotlin:publishTvosX64PublicationToOss -x :pprint-kotlin:publishTvosArm64PublicationToOss -x :pprint-kotlin:publishWatchosX64PublicationToOss -x :pprint-kotlin:publishWatchosArm32PublicationToOss -x :pprint-kotlin:publishWatchosArm64PublicationToOss
+              publish_command: build publishMacosX64PublicationToOss publishMacosArm64PublicationToOss publishIosX64PublicationToOss publishIosArm64PublicationToOss publishIosSimulatorArm64PublicationToOss publishTvosX64PublicationToOss publishTvosArm64PublicationToOss publishWatchosX64PublicationToOss publishWatchosArm32PublicationToOss publishWatchosArm64PublicationToOss -x :pprint-kotlin:build
               platform: mac
             - os: windows-latest
               publish_command: build publishMingwX64PublicationToOss -x :pprint-kotlin:build # [No such task in pprint-kotlin as:] -x :pprint-kotlin:publishMingwX64PublicationToOss
