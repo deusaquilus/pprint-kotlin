@@ -58,6 +58,20 @@ kotlin {
     androidNativeX86()
     androidNativeArm32()
     androidNativeArm64()
+
+    // Linux needs to know about these
+    macosX64()
+    macosArm64()
+    iosX64()
+    iosArm64()
+    iosSimulatorArm64()
+    tvosX64()
+    tvosArm64()
+    watchosX64()
+    watchosArm32()
+    watchosArm64()
+
+    mingwX64()
   }
   if (isMac && isCI) {
     macosX64()
