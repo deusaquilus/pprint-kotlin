@@ -59,7 +59,8 @@ kotlin {
     androidNativeArm32()
     androidNativeArm64()
 
-    // Linux needs to know about these
+    // Need to know about this since we publish the -tooling metadata from
+    // the linux containers. Although it doesn't build these it needs to know about them.
     macosX64()
     macosArm64()
     iosX64()
