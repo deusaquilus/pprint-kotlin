@@ -22,10 +22,11 @@ kotlin {
   val isWindows = platform == "windows"
 
   // If we're not the CI build a limited set of standard targets
+  jvm {
+    jvmToolchain(11)
+  }
+
   if(!isCI) {
-    jvm {
-      jvmToolchain(11)
-    }
     js {
       browser()
       nodejs()
@@ -38,9 +39,6 @@ kotlin {
 
   // If we are a CI, build all the targets for the specified platform
   if (isLinux && isCI) {
-    jvm {
-      jvmToolchain(11)
-    }
     js {
       browser()
       nodejs()
