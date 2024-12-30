@@ -99,10 +99,10 @@ fun usingSequence2() {
 
 object CustomPrinter {
   class CustomPPrinter1<T>(override val serializer: SerializationStrategy<T>, override val config: PPrinterConfig) : PPrinter<T>(serializer, config) {
-    override fun <R> treeifyWith(treeifyable: PPrinter.Treeifyable<R>, escapeUnicode: Boolean, showFieldNames: Boolean): Tree =
-      when (val v = treeifyable.value) {
-        is LocalDate -> Tree.Literal(v.format(DateTimeFormatter.ofPattern("MM/dd/YYYY")))
-        else -> super.treeifyWith(treeifyable, escapeUnicode, showFieldNames)
+    override fun <R> treeifyValueOrNull(value: R, elementName: String?, escapeUnicode: Boolean, showFieldNames: Boolean): Tree? =
+      when (value) {
+        is LocalDate -> Tree.Literal(value.format(DateTimeFormatter.ofPattern("MM/dd/YYYY")), elementName)
+        else -> super.treeifyValueOrNull(value, elementName, escapeUnicode, showFieldNames)
       }
   }
 

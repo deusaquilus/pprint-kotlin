@@ -36,15 +36,15 @@ object ProductSupport {
     val productIterator = props.asSequence().map { it.invoke(x) }
     val productElementNames = props.asSequence().map { it.name }
 
-    return if (!showFieldNames)
-      productIterator.map { x -> walker.treeify(x, escapeUnicode, showFieldNames) }.iterator()
-    else
-      productElementNames
-        .withIndex()
-        .map { (i, name) ->
-          val elem = props[i].invoke(x)
-          Tree.KeyValue(name, walker.treeify(elem, escapeUnicode, showFieldNames))
-        }.iterator()
+    return productElementNames
+      .withIndex()
+      .map { (i, name) ->
+        val elem = props[i].invoke(x)
+        if (showFieldNames)
+          Tree.KeyValue(name, walker.treeify(elem, name, escapeUnicode, showFieldNames), name)
+        else
+          walker.treeify(elem, name, escapeUnicode, showFieldNames)
+      }.iterator()
   }
 
 }

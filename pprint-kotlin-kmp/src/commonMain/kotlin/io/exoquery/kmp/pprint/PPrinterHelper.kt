@@ -7,7 +7,7 @@ import kotlinx.serialization.descriptors.*
 
 object PPrinterHelper {
   @OptIn(ExperimentalSerializationApi::class)
-  fun <T> encodeComposite(value: T, descriptor: SerialDescriptor, childrenRaw: List<ChildElement>, showFieldNames: Boolean, config: PPrinterConfig): Tree {
+  fun <T> encodeComposite(value: T, elementName: String?, descriptor: SerialDescriptor, childrenRaw: List<ChildElement>, showFieldNames: Boolean, config: PPrinterConfig): Tree {
     // important to make the sequence lazy in case doing a call to ChildElement.tree() causes an infinite loop
     val children = childrenRaw.asSequence()
 
@@ -18,7 +18,7 @@ object PPrinterHelper {
       if (showFieldNamesIfPossible)
         children.map { when (it) {
           is ChildElement.Atom -> it.tree()
-          is ChildElement.Member -> Tree.KeyValue(it.name, it.tree())
+          is ChildElement.Member -> Tree.KeyValue(it.name, it.tree(), it.name)
         } }
       else
         children.map { it.tree() }
@@ -32,7 +32,7 @@ object PPrinterHelper {
           val childTrees = processChildren(false)
           //require(childTrees.size % 2 == 0)
           childTrees.asSequence().chunked(2).map { (k, v) ->
-            Tree.Infix(k, "->", v)
+            Tree.Infix(k, "->", v, null)
           }
         }
         // If it's a list the keys would be the indexes, don't bother printing that
@@ -61,7 +61,7 @@ object PPrinterHelper {
       // sealed interface Colors { object Red: Colors; object Blue: Colors; data class Custom(val hex: String): Colors }
       // for Colors.Red we should just print "Red"
       kind == StructureKind.OBJECT && !childrenIterator.hasNext() ->
-        Tree.Literal(serialNameParsed)
+        Tree.Literal(serialNameParsed, elementName)
 
 
       // The kotlinx-serlization mechanism will attempt to identify a polymorphic type by adding a type-field
@@ -80,11 +80,11 @@ object PPrinterHelper {
       kind == PolymorphicKind.OPEN || kind == PolymorphicKind.SEALED -> {
         childrenRaw.find { it is ChildElement.Member && it.name == "value" }?.let {
           it.tree()
-        } ?: Tree.Apply(serialNameParsed, childrenIterator)
+        } ?: Tree.Apply(serialNameParsed, childrenIterator, elementName)
       }
 
       else -> {
-        Tree.Apply(serialNameParsed, childrenIterator)
+        Tree.Apply(serialNameParsed, childrenIterator, elementName)
       }
     }
   }

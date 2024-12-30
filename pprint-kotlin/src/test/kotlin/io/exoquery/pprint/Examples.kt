@@ -61,10 +61,10 @@ fun ex5() = run {
 }
 
 class CustomPPrinter1(config: PPrinterConfig) : PPrinter(config) {
-  override fun treeify(x: Any?, escapeUnicode: Boolean, showFieldNames: Boolean): Tree =
+  override fun treeify(x: Any?, elementName: String?, escapeUnicode: Boolean, showFieldNames: Boolean): Tree =
     when (x) {
-      is java.time.LocalDate -> Tree.Literal(x.format(DateTimeFormatter.ofPattern("MM/dd/YYYY")))
-      else -> super.treeify(x, escapeUnicode, showFieldNames)
+      is java.time.LocalDate -> Tree.Literal(x.format(DateTimeFormatter.ofPattern("MM/dd/YYYY")), elementName)
+      else -> super.treeify(x, elementName, escapeUnicode, showFieldNames)
     }
 }
 
@@ -80,10 +80,10 @@ class MyJavaBean(val a: String, val b: Int) {
 }
 
 class CustomPPrinter2(config: PPrinterConfig) : PPrinter(config) {
-  override fun treeify(x: Any?, esc: Boolean, names: Boolean): Tree =
+  override fun treeify(x: Any?, elementName: String?, esc: Boolean, names: Boolean): Tree =
     when (x) {
-      is MyJavaBean -> Tree.Apply("MyJavaBean", listOf(x.getValueA(), x.getValueB()).map { treeify(it, esc, names) }.iterator())
-      else -> super.treeify(x, esc, names)
+      is MyJavaBean -> Tree.Apply("MyJavaBean", listOf(x.getValueA(), x.getValueB()).map { treeify(it, null, esc, names) }.iterator(), elementName)
+      else -> super.treeify(x, elementName, esc, names)
     }
 }
 
@@ -94,18 +94,19 @@ fun ex8() = run {
 }
 
 class CustomPPrinter3(config: PPrinterConfig) : PPrinter(config) {
-  override fun treeify(x: Any?, esc: Boolean, names: Boolean): Tree {
+  override fun treeify(x: Any?, elementName: String?, esc: Boolean, names: Boolean): Tree {
     // function to make recursive calls shorter
-    fun rec(x: Any?) = treeify(x, esc, names)
+    fun rec(x: Any?) = treeify(x, null, esc, names)
     return when (x) {
       // Recurse on the values, pass result into Tree.KeyValue.
       is MyJavaBean ->
         Tree.Apply(
           "MyJavaBean",
-          listOf(Tree.KeyValue("a", rec(x.getValueA())), Tree.KeyValue("b", rec(x.getValueB()))).iterator()
+          listOf(Tree.KeyValue("a", rec(x.getValueA()), null), Tree.KeyValue("b", rec(x.getValueB()), null)).iterator(),
+          elementName
         )
       else ->
-        super.treeify(x, esc, names)
+        super.treeify(x, elementName, esc, names)
     }
   }
 }
@@ -118,17 +119,17 @@ fun ex9() = run {
 
 
 class CustomPPrinter4(config: PPrinterConfig) : PPrinter(config) {
-  override fun treeify(x: Any?, escapeUnicode: Boolean, showFieldNames: Boolean): Tree {
+  override fun treeify(x: Any?, elementName: String?, escapeUnicode: Boolean, showFieldNames: Boolean): Tree {
     // function to make recursive calls shorter
-    fun rec(x: Any?) = treeify(x, escapeUnicode, showFieldNames)
+    fun rec(x: Any?) = treeify(x, null, escapeUnicode, showFieldNames)
     fun field(fieldName: String, value: Any?) =
-      if (showFieldNames) Tree.KeyValue(fieldName, rec(value)) else rec(value)
+      if (showFieldNames) Tree.KeyValue(fieldName, rec(value), fieldName) else rec(value)
     return when (x) {
       // Recurse on the values, pass result into Tree.KeyValue.
       is MyJavaBean ->
-        Tree.Apply("MyJavaBean", listOf(field("a", x.getValueA()), field("b", x.getValueB())).iterator())
+        Tree.Apply("MyJavaBean", listOf(field("a", x.getValueA()), field("b", x.getValueB())).iterator(), elementName)
       else ->
-        super.treeify(x, escapeUnicode, showFieldNames)
+        super.treeify(x, elementName, escapeUnicode, showFieldNames)
     }
   }
 }

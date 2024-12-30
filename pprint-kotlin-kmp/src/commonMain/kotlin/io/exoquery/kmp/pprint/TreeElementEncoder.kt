@@ -14,7 +14,9 @@ import kotlinx.serialization.modules.SerializersModule
 sealed interface ChildElement {
   val tree: () -> Tree
 
-  data class Member(val name: String, override val tree: () -> Tree): ChildElement
+  data class Member(val name: String, val makeTree: (String) -> Tree): ChildElement {
+    override val tree = { makeTree(name) }
+  }
   data class Atom(override val tree: () -> Tree): ChildElement
 }
 
@@ -86,7 +88,7 @@ open class TreeElementEncoder private constructor (val pprinter: PPrinter<*>) : 
 
   protected val currChildren = mutableListOf<ChildElement>()
 
-  protected fun add(name: String, tree: () -> Tree): Unit {
+  protected fun add(name: String, tree: (name: String) -> Tree): Unit {
     currChildren.add(ChildElement.Member(name, tree))
   }
 
@@ -94,8 +96,8 @@ open class TreeElementEncoder private constructor (val pprinter: PPrinter<*>) : 
     currChildren.add(ChildElement.Atom(tree))
   }
 
-  private fun treeifyLeaf(value: Any?): Tree =
-    pprinter.treeifyWith<Any?>(PPrinter.Treeifyable.Leaf(value), escapeUnicode, showFieldNames)
+  private fun treeifyLeaf(value: Any?, elementName: String?): Tree =
+    pprinter.treeifyElement<Any?>(PPrinter.Treeifyable.Leaf(value), elementName, escapeUnicode, showFieldNames)
 
   override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder = this
 
@@ -113,34 +115,34 @@ open class TreeElementEncoder private constructor (val pprinter: PPrinter<*>) : 
   /**
    * Invoked to encode a value when specialized `encode*` method was not overridden.
    */
-  public fun encodeValue(value: Any): Unit = addAtom { treeifyLeaf(value) }
+  public fun encodeValue(value: Any): Unit = addAtom { treeifyLeaf(value, null) }
 
-  override fun encodeNull(): Unit = addAtom { treeifyLeaf(null) }
+  override fun encodeNull(): Unit = addAtom { treeifyLeaf(null, null) }
 
   override fun encodeInline(descriptor: SerialDescriptor): Encoder = this
 
   // Delegating implementation of CompositeEncoder
-  override fun encodeBooleanElement(desc: SerialDescriptor, index: Int, value: Boolean) = add(desc.getElementName(index), { treeifyLeaf(value) })
-  override fun encodeByteElement(desc: SerialDescriptor, index: Int, value: Byte) = add(desc.getElementName(index), { treeifyLeaf(value) })
-  override fun encodeShortElement(desc: SerialDescriptor, index: Int, value: Short) = add(desc.getElementName(index), { treeifyLeaf(value) })
-  override fun encodeIntElement(desc: SerialDescriptor, index: Int, value: Int) = add(desc.getElementName(index), { treeifyLeaf(value) })
-  override fun encodeLongElement(desc: SerialDescriptor, index: Int, value: Long) = add(desc.getElementName(index), { treeifyLeaf(value) })
-  override fun encodeFloatElement(desc: SerialDescriptor, index: Int, value: Float) = add(desc.getElementName(index), { treeifyLeaf(value) })
-  override fun encodeDoubleElement(desc: SerialDescriptor, index: Int, value: Double) = add(desc.getElementName(index), { treeifyLeaf(value) })
-  override fun encodeCharElement(desc: SerialDescriptor, index: Int, value: Char) = add(desc.getElementName(index), { treeifyLeaf(value) })
-  override fun encodeStringElement(desc: SerialDescriptor, index: Int, value: String) = add(desc.getElementName(index), { treeifyLeaf(value) })
+  override fun encodeBooleanElement(desc: SerialDescriptor, index: Int, value: Boolean) = add(desc.getElementName(index), { treeifyLeaf(value, it) })
+  override fun encodeByteElement(desc: SerialDescriptor, index: Int, value: Byte) = add(desc.getElementName(index), { treeifyLeaf(value, it) })
+  override fun encodeShortElement(desc: SerialDescriptor, index: Int, value: Short) = add(desc.getElementName(index), { treeifyLeaf(value, it) })
+  override fun encodeIntElement(desc: SerialDescriptor, index: Int, value: Int) = add(desc.getElementName(index), { treeifyLeaf(value, it) })
+  override fun encodeLongElement(desc: SerialDescriptor, index: Int, value: Long) = add(desc.getElementName(index), { treeifyLeaf(value, it) })
+  override fun encodeFloatElement(desc: SerialDescriptor, index: Int, value: Float) = add(desc.getElementName(index), { treeifyLeaf(value, it) })
+  override fun encodeDoubleElement(desc: SerialDescriptor, index: Int, value: Double) = add(desc.getElementName(index), { treeifyLeaf(value, it) })
+  override fun encodeCharElement(desc: SerialDescriptor, index: Int, value: Char) = add(desc.getElementName(index), { treeifyLeaf(value, it) })
+  override fun encodeStringElement(desc: SerialDescriptor, index: Int, value: String) = add(desc.getElementName(index), { treeifyLeaf(value, it) })
 
-  override fun encodeBoolean(value: Boolean): Unit = addAtom { treeifyLeaf(value) }
-  override fun encodeByte(value: Byte): Unit = addAtom { treeifyLeaf(value) }
-  override fun encodeShort(value: Short): Unit = addAtom { treeifyLeaf(value) }
-  override fun encodeInt(value: Int): Unit = addAtom { treeifyLeaf(value) }
-  override fun encodeLong(value: Long): Unit = addAtom { treeifyLeaf(value) }
-  override fun encodeFloat(value: Float): Unit = addAtom { treeifyLeaf(value) }
-  override fun encodeDouble(value: Double): Unit = addAtom { treeifyLeaf(value) }
-  override fun encodeChar(value: Char): Unit = addAtom { treeifyLeaf(value) }
-  override fun encodeString(value: String): Unit = addAtom { treeifyLeaf(value) }
+  override fun encodeBoolean(value: Boolean): Unit = addAtom { treeifyLeaf(value, null) }
+  override fun encodeByte(value: Byte): Unit = addAtom { treeifyLeaf(value, null) }
+  override fun encodeShort(value: Short): Unit = addAtom { treeifyLeaf(value, null) }
+  override fun encodeInt(value: Int): Unit = addAtom { treeifyLeaf(value, null) }
+  override fun encodeLong(value: Long): Unit = addAtom { treeifyLeaf(value, null) }
+  override fun encodeFloat(value: Float): Unit = addAtom { treeifyLeaf(value, null) }
+  override fun encodeDouble(value: Double): Unit = addAtom { treeifyLeaf(value, null) }
+  override fun encodeChar(value: Char): Unit = addAtom { treeifyLeaf(value, null) }
+  override fun encodeString(value: String): Unit = addAtom { treeifyLeaf(value, null) }
 
-  override fun encodeEnum(enumDescriptor: SerialDescriptor, index: Int): Unit = addAtom { treeifyLeaf(enumDescriptor.getElementName(index)) }
+  override fun encodeEnum(enumDescriptor: SerialDescriptor, index: Int): Unit = addAtom { treeifyLeaf(enumDescriptor.getElementName(index), enumDescriptor.getElementName(index)) }
 
   override fun beginCollection(descriptor: SerialDescriptor, collectionSize: Int): CompositeEncoder {
     return super.beginCollection(descriptor, collectionSize)
@@ -159,8 +161,9 @@ open class TreeElementEncoder private constructor (val pprinter: PPrinter<*>) : 
     value: T
   ) {
     if (encodeElement(descriptor, index)) {
-      add(descriptor.getElementName(index)) {
-        pprinter.treeifyWith<T>(PPrinter.Treeifyable.Elem(value, serializer), escapeUnicode, showFieldNames)
+      val elemName = descriptor.getElementName(index)
+      add(elemName) {
+        pprinter.treeifyElement<T>(PPrinter.Treeifyable.Elem(value, serializer), it, escapeUnicode, showFieldNames)
       }
     }
   }

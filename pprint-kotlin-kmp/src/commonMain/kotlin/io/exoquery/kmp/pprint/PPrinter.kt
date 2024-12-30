@@ -38,46 +38,62 @@ open class PPrinter<T>(open val serializer: SerializationStrategy<T>, override o
   }
 
 
-  override fun treeify(x: T, escapeUnicode: Boolean, showFieldNames: Boolean): Tree =
-    treeifyWith(Treeifyable.Elem(x, serializer), escapeUnicode, showFieldNames)
+  override fun treeify(x: T, elementName: String?, escapeUnicode: Boolean, showFieldNames: Boolean): Tree =
+    treeifyElement(Treeifyable.Elem(x, serializer), elementName, escapeUnicode, showFieldNames)
 
-  open fun <R> treeifyWith(treeifyable: Treeifyable<R>, escapeUnicode: Boolean, showFieldNames: Boolean): Tree {
-    val value = treeifyable.value
-    return when {
-      value == null -> Tree.Literal("null")
-      value is Boolean -> Tree.Literal(value.toString())
-      value is Byte -> Tree.Literal(value.toString())
-      value is Short -> Tree.Literal(value.toString())
-      value is Int -> Tree.Literal(value.toString())
-      value is Long -> Tree.Literal("${value}L")
-      value is Float -> Tree.Literal("${value}F")
-      value is Double -> Tree.Literal(value.toString())
-      value is Char -> EncodeHelperImpl.encodeChar(value, escapeUnicode)
-      value is String -> EncodeHelperImpl.encodeString(value, escapeUnicode)
-      // Empty iterator case which for some reason causes an exception with the regular kotlin serializer
-      value is Iterator<*> && !value.hasNext() -> Tree.Literal("empty iterator")
-      value is Iterator<*> && value.hasNext() -> Tree.Literal("non-empty iterator")
-      // If it is a sequence and the user is using the correct serializer i.e. PPrintSequenceSerializer
-      value is Sequence<*> && treeifyable is Treeifyable.Elem && treeifyable.serializer is PPrintSequenceSerializer<*> -> {
-        @Suppress("UNCHECKED_CAST")
-        val elementSerializer = treeifyable.serializer.element as KSerializer<Any?>
-        Tree.Apply("Sequence", value.map { treeifyWith(Treeifyable.Elem(it, elementSerializer), escapeUnicode, showFieldNames) }.iterator())
-      }
-      treeifyable is Treeifyable.Elem -> {
-        val encoder = TreeElementEncoder(this)
-        treeifyable.serializer.serialize(encoder, treeifyable.value)
-        val elements = encoder.retrieve()
-        PPrinterHelper.encodeComposite(
-          treeifyable.value,
-          treeifyable.serializer.descriptor,
-          elements,
-          showFieldNames,
-          config
-        )
-      }
-      else -> Tree.Literal(value.toString())
+  open fun <E> treeifyComposite(elem: Treeifyable.Elem<E>, elementName: String?, showFieldNames: Boolean) = run {
+    val encoder = TreeElementEncoder(this)
+    elem.serializer.serialize(encoder, elem.value)
+    val elements = encoder.retrieve()
+    PPrinterHelper.encodeComposite(
+      elem.value,
+      elementName,
+      elem.serializer.descriptor,
+      elements,
+      showFieldNames,
+      config
+    )
+  }
+
+  open fun <R> treeifyElement(treeifyable: Treeifyable<R>, elementName: String?, escapeUnicode: Boolean, showFieldNames: Boolean): Tree {
+    return when(treeifyable) {
+      is Treeifyable.Elem<*> ->
+        // try to treeify it with the treeifyValueOrNull function in case there's an override for the element
+        treeifyValueOrNull(treeifyable.value, elementName, escapeUnicode, showFieldNames) ?: run {
+          when {
+            // If it is a sequence and the user is using the correct serializer i.e. PPrintSequenceSerializer
+            treeifyable.value is Sequence<*> && treeifyable.serializer is PPrintSequenceSerializer<*> -> {
+              @Suppress("UNCHECKED_CAST")
+              val elementSerializer = treeifyable.serializer.element as KSerializer<Any?>
+              Tree.Apply("Sequence", (treeifyable.value as Sequence<*>).map { treeifyElement(Treeifyable.Elem(it, elementSerializer), null, escapeUnicode, showFieldNames) }.iterator(), elementName)
+            }
+            // Otherwise it's a regular composite
+            else -> treeifyComposite(treeifyable, elementName, showFieldNames)
+          }
+        }
+      is Treeifyable.Leaf ->
+        treeifyValueOrNull(treeifyable.value, elementName, escapeUnicode, showFieldNames) ?:
+          Tree.Literal(treeifyable.value.toString(), elementName)
     }
   }
+
+  open fun <R> treeifyValueOrNull(value: R, elementName: String?, escapeUnicode: Boolean, showFieldNames: Boolean): Tree? =
+    when {
+      value == null -> Tree.Literal("null", elementName)
+      value is Boolean -> Tree.Literal(value.toString(), elementName)
+      value is Byte -> Tree.Literal(value.toString(), elementName)
+      value is Short -> Tree.Literal(value.toString(), elementName)
+      value is Int -> Tree.Literal(value.toString(), elementName)
+      value is Long -> Tree.Literal("${value}L", elementName)
+      value is Float -> Tree.Literal("${value}F", elementName)
+      value is Double -> Tree.Literal(value.toString(), elementName)
+      value is Char -> EncodeHelperImpl.encodeChar(value, escapeUnicode, elementName)
+      value is String -> EncodeHelperImpl.encodeString(value, escapeUnicode, elementName)
+      // Empty iterator case which for some reason causes an exception with the regular kotlin serializer
+      value is Iterator<*> && !value.hasNext() -> Tree.Literal("empty iterator", elementName)
+      value is Iterator<*> && value.hasNext() -> Tree.Literal("non-empty iterator", elementName)
+      else -> null
+    }
 }
 
 class PPrintSequenceSerializer<T>(val element: KSerializer<T>) : KSerializer<Sequence<T>> {

@@ -94,7 +94,7 @@ abstract class PPrinterBase<T>(open val config: PPrinterConfig): Walker<T> {
     // The three stages within the pretty-printing process:
 
     // Convert the Any into a lazy Tree of `Apply`, `Infix` and `Lazy`/`Strict` literals
-    val tree = this.treeify(x, escapeUnicode, showFieldNames)
+    val tree = this.treeify(x, null, escapeUnicode, showFieldNames)
     // Render the `Any` into a stream of tokens, properly indented and wrapped
     // at the given width
     val renderer = Renderer(width, config.colorApplyPrefix, config.colorLiteral, indent)

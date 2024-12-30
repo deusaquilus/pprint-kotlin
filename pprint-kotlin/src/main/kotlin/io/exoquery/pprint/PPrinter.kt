@@ -10,24 +10,25 @@ object EncodeHelperImpl: EncodeHelper() {
 
 open class PPrinter(override val config: PPrinterConfig = PPrinterConfig()): PPrinterBase<Any?>(config) {
 
-  open override fun treeify(x: Any?, escapeUnicode: Boolean, showFieldNames: Boolean): Tree {
-    fun treeifySame(x: Any?) = treeify(x, escapeUnicode, showFieldNames)
+  open override fun treeify(x: Any?, elementName: String?, escapeUnicode: Boolean, showFieldNames: Boolean): Tree {
+    fun treeifySame(x: Any?) = treeify(x, elementName, escapeUnicode, showFieldNames)
+    fun treeifyAtom(x: Any?) = treeify(x, null, escapeUnicode, showFieldNames)
 
     fun <T> applyArray(name: String, seq: Sequence<T>) =
-      Tree.Apply(name, seq.map {x -> treeifySame(x)}.iterator())
+      Tree.Apply(name, seq.map {x -> treeifySame(x)}.iterator(), elementName)
 
     return when {
 
-      x == null -> Tree.Literal("null")
-      x is Boolean -> Tree.Literal(x.toString())
-      x is Char -> EncodeHelperImpl.encodeChar(x, escapeUnicode)
-      x is Byte -> Tree.Literal(x.toString())
-      x is Short -> Tree.Literal(x.toString())
-      x is Int -> Tree.Literal(x.toString())
-      x is Long -> Tree.Literal(x.toString() + "L")
-      x is Float -> Tree.Literal(x.toString() + "F")
-      x is Double -> Tree.Literal(x.toString())
-      x is String -> EncodeHelperImpl.encodeString(x, escapeUnicode)
+      x == null -> Tree.Literal("null", elementName)
+      x is Boolean -> Tree.Literal(x.toString(), elementName)
+      x is Char -> EncodeHelperImpl.encodeChar(x, escapeUnicode, elementName)
+      x is Byte -> Tree.Literal(x.toString(), elementName)
+      x is Short -> Tree.Literal(x.toString(), elementName)
+      x is Int -> Tree.Literal(x.toString(), elementName)
+      x is Long -> Tree.Literal(x.toString() + "L", elementName)
+      x is Float -> Tree.Literal(x.toString() + "F", elementName)
+      x is Double -> Tree.Literal(x.toString(), elementName)
+      x is String -> EncodeHelperImpl.encodeString(x, escapeUnicode, elementName)
 
       // No Symbol in Kotlin
       //x is Symbol -> Tree.Literal("'" + x.name)
@@ -47,15 +48,16 @@ open class PPrinter(override val config: PPrinterConfig = PPrinterConfig()): PPr
         Tree.Apply(
           name,
           x.asSequence().flatMap { (k, v) ->
-            listOf(Tree.Infix(treeify(k, escapeUnicode, showFieldNames), "->", treeify(v, escapeUnicode, showFieldNames)))
-          }.iterator()
+            listOf(Tree.Infix(treeify(k, null, escapeUnicode, showFieldNames), "->", treeify(v, null, escapeUnicode, showFieldNames), null))
+          }.iterator(),
+          elementName
         )
       }
 
       // Note: Maybe want to have a configuration to always make it just "Sequence"
       x is Sequence<*> -> {
         val name = if (showGenericForCollections) "Sequence" else x::class.simpleName ?: "Map"
-        Tree.Apply(name, x.asSequence().map { x -> treeify(x, escapeUnicode, showFieldNames) }.iterator())
+        Tree.Apply(name, x.asSequence().map { x -> treeify(x, null, escapeUnicode, showFieldNames) }.iterator(), elementName)
       }
 
       // Note: Maybe want to have a configuration to always make it just "Iterable"
@@ -71,7 +73,7 @@ open class PPrinter(override val config: PPrinterConfig = PPrinterConfig()): PPr
           } else {
             x::class.simpleName ?: "Iterable"
           }
-        Tree.Apply(name, x.asSequence().map { x -> treeify(x, escapeUnicode, showFieldNames) }.iterator())
+        Tree.Apply(name, x.asSequence().map { x -> treeify(x, null, escapeUnicode, showFieldNames) }.iterator(), elementName)
       }
 
       // No None in kotlin
@@ -79,9 +81,9 @@ open class PPrinter(override val config: PPrinterConfig = PPrinterConfig()): PPr
 
       x is Iterator<*> -> {
         if (!x.hasNext())
-          Tree.Literal("empty iterator")
+          Tree.Literal("empty iterator", null)
         else
-          Tree.Literal("non-empty iterator")
+          Tree.Literal("non-empty iterator", null)
       }
 
       x is BooleanArray -> applyArray("BooleanArray", x.asSequence())
@@ -95,15 +97,15 @@ open class PPrinter(override val config: PPrinterConfig = PPrinterConfig()): PPr
 
       x is Array<*> -> applyArray("Array", x.asSequence())
 
-      x is Sequence<*> -> Tree.Apply("Sequence", x.map {x -> treeifySame(x)}.iterator())
+      x is Sequence<*> -> Tree.Apply("Sequence", x.map {x -> treeifyAtom(x)}.iterator(), elementName)
 
       x is Pair<*, *> -> {
         // We could also do Tree.Infix(treeifySame(x.first), "to", treeifySame(x.second)), so it would be "a to b" not sure if that is better or worse
-        Tree.Apply("Pair", sequenceOf(treeifySame(x.first), treeifySame(x.second)).iterator())
+        Tree.Apply("Pair", sequenceOf(treeifyAtom(x.first), treeifyAtom(x.second)).iterator(), elementName)
       }
 
       x is Triple<*, *, *> ->
-        Tree.Apply("Triple", sequenceOf(treeifySame(x.first), treeifySame(x.second), treeifySame(x.third)).iterator())
+        Tree.Apply("Triple", sequenceOf(treeifySame(x.first), treeifyAtom(x.second), treeifyAtom(x.third)).iterator(), elementName)
 
       (x::class.isData) -> {
         val cls = x::class
@@ -111,7 +113,7 @@ open class PPrinter(override val config: PPrinterConfig = PPrinterConfig()): PPr
         val productArity = cls.constructors.firstOrNull()?.parameters?.size ?: 0
 
         // If there are no constructors it's usually a `data object`
-        if (productArity == 0) Tree.Lazy { ctx -> sequenceOf(x.toString()).iterator() }
+        if (productArity == 0) Tree.Lazy({ ctx -> sequenceOf(x.toString()).iterator() }, elementName)
         // Don't do "a to b" when product has 2 elements since there's a specific Pair/Triple in Kotlin
         //else if(productArity == 2 && Util.isOperator(x.productPrefix)){
         //  Tree.Infix(
@@ -130,18 +132,20 @@ open class PPrinter(override val config: PPrinterConfig = PPrinterConfig()): PPr
         //    Tree.Apply(x.productPrefix, ProductSupport.treeifyProductElements(x, this, escapeUnicode, showFieldNames))
         //}
         else {
-          Tree.Apply(className, ProductSupport.treeifyProductElements(x, cls, this, escapeUnicode, showFieldNames))
+          Tree.Apply(className, ProductSupport.treeifyProductElements(x, cls, this, escapeUnicode, showFieldNames), elementName)
         }
       }
 
-      else -> Tree.Lazy { ctx ->
-        val v = x.toString()
+      else -> Tree.Lazy({ ctx ->
+          val v = x.toString()
           //when {
           //  x.toString() == null -> "null" // It appears that in Kotlin x.toString() can never be null and we checked x for nullity at the top of this function
           //  else -> x.toString()
           //}
-        sequenceOf(v).iterator()
-      }
+          sequenceOf(v).iterator()
+        },
+        elementName
+      )
     }
   }
 

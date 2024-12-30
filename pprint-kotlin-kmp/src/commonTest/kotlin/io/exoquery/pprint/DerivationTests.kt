@@ -15,7 +15,7 @@ data class CustomToString(val value: Int = 1){
 }
 sealed interface Customs {
   data class A(val i: Int): Customs
-  data class B(val s: String): Customs{
+  data class B(val s: String): Customs {
     override fun toString() = "Beeee"
   }
 }
