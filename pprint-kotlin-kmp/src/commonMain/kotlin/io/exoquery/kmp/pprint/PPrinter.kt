@@ -12,7 +12,33 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.serializer
 
-open class PPrinter<T>(open val serializer: SerializationStrategy<T>, override open val config: PPrinterConfig = PPrinterConfig()): PPrinterBase<T>(config) {
+abstract class PPrinterKmp<T>(override open val config: PPrinterConfig): PPrinterBase<T>(config) {
+  open fun <R> treeifyValueOrNull(value: R, elementName: String?, escapeUnicode: Boolean, showFieldNames: Boolean): Tree? =
+    when {
+      value == null -> Tree.Literal("null", elementName)
+      value is Boolean -> Tree.Literal(value.toString(), elementName)
+      value is Byte -> Tree.Literal(value.toString(), elementName)
+      value is Short -> Tree.Literal(value.toString(), elementName)
+      value is Int -> Tree.Literal(value.toString(), elementName)
+      value is Long -> Tree.Literal("${value}L", elementName)
+      value is Float -> Tree.Literal("${value}F", elementName)
+      value is Double -> Tree.Literal(value.toString(), elementName)
+      value is Char -> EncodeHelperImpl.encodeChar(value, escapeUnicode, elementName)
+      value is String -> EncodeHelperImpl.encodeString(value, escapeUnicode, elementName)
+      // Empty iterator case which for some reason causes an exception with the regular kotlin serializer
+      value is Iterator<*> && !value.hasNext() -> Tree.Literal("empty iterator", elementName)
+      value is Iterator<*> && value.hasNext() -> Tree.Literal("non-empty iterator", elementName)
+      else -> null
+    }
+}
+
+open class PPrinterManual<T>(override val config: PPrinterConfig = PPrinterConfig()): PPrinterKmp<T>(config) {
+  override fun treeify(x: T, elementName: String?, escapeUnicode: Boolean, showFieldNames: Boolean): Tree =
+    treeifyValueOrNull(x, elementName, escapeUnicode, showFieldNames)
+      ?: Tree.Literal(x.toString(), elementName)
+}
+
+open class PPrinter<T>(open val serializer: SerializationStrategy<T>, override open val config: PPrinterConfig = PPrinterConfig()): PPrinterKmp<T>(config) {
 
   companion object {
     inline operator fun <reified T> invoke(config: PPrinterConfig = PPrinterConfig()) = PPrinter(serializer<T>(), config)
@@ -76,24 +102,6 @@ open class PPrinter<T>(open val serializer: SerializationStrategy<T>, override o
           Tree.Literal(treeifyable.value.toString(), elementName)
     }
   }
-
-  open fun <R> treeifyValueOrNull(value: R, elementName: String?, escapeUnicode: Boolean, showFieldNames: Boolean): Tree? =
-    when {
-      value == null -> Tree.Literal("null", elementName)
-      value is Boolean -> Tree.Literal(value.toString(), elementName)
-      value is Byte -> Tree.Literal(value.toString(), elementName)
-      value is Short -> Tree.Literal(value.toString(), elementName)
-      value is Int -> Tree.Literal(value.toString(), elementName)
-      value is Long -> Tree.Literal("${value}L", elementName)
-      value is Float -> Tree.Literal("${value}F", elementName)
-      value is Double -> Tree.Literal(value.toString(), elementName)
-      value is Char -> EncodeHelperImpl.encodeChar(value, escapeUnicode, elementName)
-      value is String -> EncodeHelperImpl.encodeString(value, escapeUnicode, elementName)
-      // Empty iterator case which for some reason causes an exception with the regular kotlin serializer
-      value is Iterator<*> && !value.hasNext() -> Tree.Literal("empty iterator", elementName)
-      value is Iterator<*> && value.hasNext() -> Tree.Literal("non-empty iterator", elementName)
-      else -> null
-    }
 }
 
 class PPrintSequenceSerializer<T>(val element: KSerializer<T>) : KSerializer<Sequence<T>> {

@@ -20,7 +20,7 @@ allprojects {
 
 allprojects {
     group = "io.exoquery"
-    version = "3.0.0.D"
+    version = "3.0.0.E"
 }
 
 subprojects {
