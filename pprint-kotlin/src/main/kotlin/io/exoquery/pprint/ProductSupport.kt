@@ -33,7 +33,6 @@ object ProductSupport {
   ): Iterator<Tree>
   {
     val props = cls.dataClassProperties()
-    val productIterator = props.asSequence().map { it.invoke(x) }
     val productElementNames = props.asSequence().map { it.name }
 
     return productElementNames

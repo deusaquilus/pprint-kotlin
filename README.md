@@ -190,7 +190,7 @@ In order to extend pprint, subclass the PPrinter class and override the `treeify
 For example:
 ```kotlin
 class CustomPPrinter1(val config: PPrinterConfig) : PPrinter(config) {
-  override fun treeify(x: Any?, escapeUnicode: Boolean, showFieldNames: Boolean): Tree =
+  override fun treeify(x: Any?, elementName: String?, escapeUnicode: Boolean, showFieldNames: Boolean): Tree =
     when (x) {
       is java.time.LocalDate -> Tree.Literal(x.format(DateTimeFormatter.ofPattern("MM/dd/YYYY")))
       else -> super.treeify(x, escapeUnicode, showFieldNames)
@@ -211,9 +211,9 @@ This printer can then be used as the basis of a custom `pprint`-like user define
 > You can extend it like this:
 > ```kotlin
 > class CustomPPrinter1<T>(override val serializer: SerializationStrategy<T>, override val config: PPrinterConfig) : PPrinter<T>(serializer, config) {
->   // Overwrite `treeifyWith` instead of treeify 
->   override fun <R> treeifyWith(treeifyable: PPrinter.Treeifyable<R>, escapeUnicode: Boolean, showFieldNames: Boolean): Tree =
->     when (val v = treeifyable.value) {
+>   // Overwrite `treeifyValueOrNull` in order to handle leaf-types. Note that anything handled here will not be treated as a composite value.
+>   override fun <R> treeifyValueOrNull(value: R, elementName: String?, escapeUnicode: Boolean, showFieldNames: Boolean): Tree? =
+>     when (value) {
 >       is LocalDate -> Tree.Literal(v.format(DateTimeFormatter.ofPattern("MM/dd/YYYY")))
 >       else -> super.treeifyWith(treeifyable, escapeUnicode, showFieldNames)
 >     }
@@ -240,11 +240,14 @@ class MyJavaBean(val a: String, val b: Int) {
 
 // Create the custom printer
 class CustomPPrinter2(val config: PPrinterConfig) : PPrinter(config) {
-  override fun treeify(x: Any?, esc: Boolean, names: Boolean): Tree =
+  override fun treeify(x: Any?, elementName: String?, esc: Boolean, names: Boolean): Tree =
     when (x) {
       // List through the properties of 'MyJavaBean' and recursively call treeify on them.
       // (Note that Tree.Apply takes an iterator of properties so that the interface is lazy)
-      is MyJavaBean -> Tree.Apply("MyJavaBean", listOf(x.getValueA(), x.getValueB()).map { treeify(it, esc, names) }.iterator())
+      is MyJavaBean -> 
+        Tree.Apply("MyJavaBean", listOf(x.getValueA() to "A", x.getValueB() to "B")
+          .map { (field, fieldName) -> treeify(field, fieldName, esc, names) }.iterator()
+        )
       else -> super.treeify(x, esc, names)
     }
 }
@@ -258,9 +261,9 @@ println(pp.invoke(bean))
 To print field-names you use Tree.KeyValue:
 ```kotlin
 class CustomPPrinter3(val config: PPrinterConfig) : PPrinter(config) {
-  override fun treeify(x: Any?, escapeUnicode: Boolean, showFieldNames: Boolean): Tree {
+  override fun treeify(x: Any?, elementName: String?, escapeUnicode: Boolean, showFieldNames: Boolean): Tree {
     // function to make recursive calls shorter
-    fun rec(x: Any?) = treeify(x, escapeUnicode, showFieldNames)
+    fun rec(x: Any?) = treeify(x, null, escapeUnicode, showFieldNames)
     return when (x) {
       // Recurse on the values, pass result into Tree.KeyValue.
       is MyJavaBean -> 
@@ -352,6 +355,77 @@ When using sequences, you will need to annotate the
 sequence-field using `@Serializable(with = PPrintSequenceSerializer::class)`.
 See the note in the [Infinite Sequences in Kotlin Multiplatform](#infinite-sequences-in-kotlin-multiplatform) section for more detail.
 
+## Using `elementName` metadata
+
+Note that the `elementName` parameter will contain the name of the field of the data class that is being printed.
+You can use this to exclude particular fields. For example:
+```kotlin
+class CustomPPrinter6(config: PPrinterConfig) : PPrinter(config) {
+  override fun treeify(x: Any?, elementName: String?, escapeUnicode: Boolean, showFieldNames: Boolean): Tree =
+    when {
+      elementName == "born" -> Tree.Literal("REDACTED", elementName)
+      else -> super.treeify(x, elementName, escapeUnicode, showFieldNames)
+    }
+}
+
+data class Person(val name: String, val born: LocalDate)
+val pp = CustomPPrinter6(PPrinterConfig())
+val joe = Person("Joe", LocalDate.of(1981, 1, 1))
+
+println(pp.invoke(joe))
+//> Person(name = "Joe", born = REDACTED)
+```
+
+You can also filter out fields on the parent-element level like this:
+```kotlin
+data class PersonBorn(val name: String, val born: LocalDate)
+
+class CustomPPrinter5(config: PPrinterConfig) : PPrinter(config) {
+  override fun treeify(x: Any?, elementName: String?, escapeUnicode: Boolean, showFieldNames: Boolean): Tree =
+    when {
+      x is PersonBorn ->
+        when (val p = super.treeify(x, elementName, escapeUnicode, showFieldNames)) {
+          is Tree.Apply -> p.copy(body = p.body.asSequence().toList().filter { it.elementName != "born" }.iterator())
+          else -> error("Expected Tree.Apply")
+        }
+      else ->
+        super.treeify(x, elementName, escapeUnicode, showFieldNames)
+    }
+}
+
+val p = PersonBorn("Joe", LocalDate.of(1981, 1, 1))
+println(CustomPPrinter5(PPrinterConfig()).invoke(p))
+//> PersonBorn(name = "Joe")
+```
+
+## Using `elementName` metadata - Kotlin Multiplatform
+
+If you want to filter out fields based on `elementName` in Kotlin Multiplatform inside of the PPrinter you need to override
+the `treeifyComposite` method. 
+> Since `treeifyValueOrNull` will always be attempted, trying to do super.treeify (or super.treeifyComposite) inside of it will result in a stack-overflow. 
+
+For example:
+```kotlin
+@Serializable
+data class PersonBorn(val name: String, val born: Long)
+
+class CustomPPrinter6<T>(override val serializer: SerializationStrategy<T>, override val config: PPrinterConfig) : PPrinter<T>(serializer, config) {
+  override fun <E> treeifyComposite(elem: Treeifyable.Elem<E>, elementName: String?, showFieldNames: Boolean): Tree =
+    when(elem.value) {
+      is PersonBorn ->
+        when (val p = super.treeifyComposite(elem, elementName, showFieldNames)) {
+          is Tree.Apply -> p.copy(body = p.body.asSequence().toList().filter { it.elementName != "born" }.iterator())
+          else -> error("Expected Tree.Apply")
+        }
+      else -> super.treeifyComposite(elem, elementName, showFieldNames)
+    }
+}
+
+val p = PersonBorn("Joe", 1234567890)
+println(CustomPPrinter6<PersonBorn>(PersonBorn.serializer(), PPrinterConfig()).invoke(p))
+//> PersonBorn(name = "Joe")
+```
+
 #### Sealed Hierarchies in KMP
 
 According to the `kotlinx-serialization` documentation, every member of a sealed hierarchy must be annotated with `@Serializable`.
@@ -387,20 +461,6 @@ class PPrintSequenceSerializer<T>(val element: KSerializer<T>) : KSerializer<Seq
 }
 ```
 (Note that a real user-defined serialzier for `Sequence` will work as well.)
-
-The actual handling of sequence printing is done in the `treeifyWith` method (roughly) like this:
-```kotlin
-open fun <R> treeifyWith(treeifyable: Treeifyable<R>, escapeUnicode: Boolean, showFieldNames: Boolean): Tree =
-  when {
-    treeifyable is Sequence<*> && treeifyable is Treeifyable.Elem && treeifyable.serializer is PPrintSequenceSerializer<*> -> {
-      @Suppress("UNCHECKED_CAST")
-      val elementSerializer = treeifyable.serializer.element as KSerializer<Any?>
-      Tree.Apply("Sequence", value.map { treeifyWith(Treeifyable.Elem(it, elementSerializer), escapeUnicode, showFieldNames) }.iterator())
-    }
-    else -> super.treeifyWith(treeifyable, escapeUnicode, showFieldNames)
-  }
-```
-You can follow this pattern to define PPrintable serializers for other generic types.
 
 #### General Note on Generic ADTs and KMP
 

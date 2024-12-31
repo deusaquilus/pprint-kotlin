@@ -140,8 +140,42 @@ fun ex10() = run {
   println(CustomPPrinter4(PPrinterConfig(defaultShowFieldNames = false)).invoke(bean))
 }
 
+data class PersonBorn(val name: String, val born: LocalDate)
+
+class CustomPPrinter5(config: PPrinterConfig) : PPrinter(config) {
+  override fun treeify(x: Any?, elementName: String?, escapeUnicode: Boolean, showFieldNames: Boolean): Tree =
+    when {
+      x is PersonBorn ->
+        when (val p = super.treeify(x, elementName, escapeUnicode, showFieldNames)) {
+          is Tree.Apply -> p.copy(body = p.body.asSequence().toList().filter { it.elementName != "born" }.iterator())
+          else -> error("Expected Tree.Apply")
+        }
+      else ->
+        super.treeify(x, elementName, escapeUnicode, showFieldNames)
+    }
+}
+
+fun ex11() = run {
+  val p = PersonBorn("Joe", LocalDate.of(1981, 1, 1))
+  println(CustomPPrinter5(PPrinterConfig()).invoke(p))
+}
+
+class CustomPPrinter6(config: PPrinterConfig) : PPrinter(config) {
+  override fun treeify(x: Any?, elementName: String?, escapeUnicode: Boolean, showFieldNames: Boolean): Tree =
+    when {
+      elementName == "born" -> Tree.Literal("REDACTED", elementName)
+      else -> super.treeify(x, elementName, escapeUnicode, showFieldNames)
+    }
+}
+
+fun ex12() = run {
+  val p = PersonBorn("Joe", LocalDate.of(1981, 1, 1))
+  println(CustomPPrinter6(PPrinterConfig()).invoke(p))
+}
+
+
 fun main() {
-  ex10()
+  ex12()
 
 
   //val seq = generateSequence { "foo" }

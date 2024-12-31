@@ -19,20 +19,6 @@ data class Stuff(val value: Map<String, String>)
 @Serializable
 data class IterStuff(val value: Iterator<Int>)
 
-@OptIn(ExperimentalSerializationApi::class)
-fun main() {
-//  showMap()
-//  showPerson()
-//  showIteratorInObject()
-//  mutualRecurse()
-//  usingSequence0()
-//    usingSequence1()
-//  customPrinter()
-
-  // GADT1.gadt()
-  GADT2.gadt()
-}
-
 // Problematic Cases with GADTs 1
 object GADT1 {
   @Serializable
@@ -158,4 +144,41 @@ fun showPerson() {
   val printer = PPrinter(Person.serializer())
   val str = printer(per)
   println(str)
+}
+
+@Serializable
+data class PersonBorn(val name: String, val born: Long)
+
+class CustomPPrinter6<T>(override val serializer: SerializationStrategy<T>, override val config: PPrinterConfig) : PPrinter<T>(serializer, config) {
+  override fun <E> treeifyComposite(elem: Treeifyable.Elem<E>, elementName: String?, showFieldNames: Boolean): Tree =
+    when(elem.value) {
+      is PersonBorn ->
+        when (val p = super.treeifyComposite(elem, elementName, showFieldNames)) {
+          is Tree.Apply -> p.copy(body = p.body.asSequence().toList().filter { it.elementName != "born" }.iterator())
+          else -> error("Expected Tree.Apply")
+        }
+      else -> super.treeifyComposite(elem, elementName, showFieldNames)
+    }
+}
+
+fun customPrinter6() {
+  val joe = PersonBorn("Joe", 123)
+  val printer = CustomPPrinter6<PersonBorn>(PersonBorn.serializer(), PPrinterConfig())
+  val p = printer(joe)
+  println(p)
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+fun main() {
+//  showMap()
+//  showPerson()
+//  showIteratorInObject()
+//  mutualRecurse()
+//  usingSequence0()
+//    usingSequence1()
+//  customPrinter()
+
+  // GADT1.gadt()
+  //GADT2.gadt()
+  customPrinter6()
 }
