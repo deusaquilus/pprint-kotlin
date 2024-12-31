@@ -15,29 +15,29 @@ sealed interface Tree {
   /**
    * Foo(aa, bbb, cccc)
    */
-  data class Apply(val prefix: String, val body: Iterator<Tree>, override val elementName: String?): Tree
+  data class Apply(val prefix: String, val body: Iterator<Tree>, override val elementName: String? = null): Tree
 
   /**
    * LHS op RHS
    */
-  data class Infix(val lhs: Tree, val op: String, val rhs: Tree, override val elementName: String?): Tree
+  data class Infix(val lhs: Tree, val op: String, val rhs: Tree, override val elementName: String? = null): Tree
 
   /**
    * "xyz"
    */
-  data class Literal(val body: String, override val elementName: String?): Tree{
+  data class Literal(val body: String, override val elementName: String? = null): Tree{
     val hasNewLine = body.any { c -> c == '\n' || c == '\r' }
   }
 
   /**
    * x = y
    */
-  data class KeyValue(val key: String, val value: Tree, override val elementName: String?): Tree
+  data class KeyValue(val key: String, val value: Tree, override val elementName: String? = null): Tree
 
   /**
    * xyz
    */
-  data class Lazy(val body0: (Ctx) -> Iterator<String>, override val elementName: String?): Tree
+  data class Lazy(val body0: (Ctx) -> Iterator<String>, override val elementName: String? = null): Tree
 
   data class Ctx(
     val width: Int,

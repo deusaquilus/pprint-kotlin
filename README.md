@@ -402,7 +402,7 @@ println(CustomPPrinter5(PPrinterConfig()).invoke(p))
 //> PersonBorn(name = "Joe")
 ```
 
-## Using `elementName` metadata - Kotlin Multiplatform
+## Using `elementName` metadata in Kotlin Multiplatform
 
 If you want to filter out fields based on `elementName` in Kotlin Multiplatform inside of the PPrinter you need to override
 the `treeifyComposite` method. 
@@ -430,7 +430,7 @@ println(CustomPPrinter6<PersonBorn>(PersonBorn.serializer(), PPrinterConfig()).i
 //> PersonBorn(name = "Joe")
 ```
 
-#### Sealed Hierarchies in KMP
+#### Sealed Hierarchies in Kotlin Multiplatform
 
 According to the `kotlinx-serialization` documentation, every member of a sealed hierarchy must be annotated with `@Serializable`.
 For example, in the following hierarchy:
@@ -448,7 +448,57 @@ Every member is annotated with `@Serializable`.
 This requirement extends to PPrint-Multiplatform as well since it relies on `kotlinx-serialization` 
 to traverse the hierarchy.
 
-#### How do deal with Custom Fields in KMP
+## Manual Printing in Kotlin Multiplatform
+
+If you want to print values with a simple and well-defined structure in Kotlin Multiplatform, you can use the the PPrinterManual class.
+For example:
+```kotlin
+data class Person(val name: String, val age: Int)
+
+class CustomPPrinter7 : PPrinterManual<Person>() {
+  override fun treeify(x: Any?, elementName: String?, escapeUnicode: Boolean, showFieldNames: Boolean): Tree =
+    when (x) {
+      is Person -> Tree.Apply("Person", listOf(Tree.KeyValue("name", Tree.Literal(x.name)), Tree.KeyValue("age", Tree.Literal(x.age))).iterator())
+      else -> super.treeify(x, elementName, escapeUnicode, showFieldNames) // will just use Tree.Literal(x.toString())
+    }
+}
+
+val p = Person("Joe", 42)
+println(CustomPPrinter7().invoke(p))
+//> Person(name = "Joe", age = 42)
+```
+
+Frequently, it will be useful to combine manual printers and automatic printers. For example:
+```kotlin
+data class PersonFavorite(val name: String, val age: Int, val favoriteColor: Colors) /// See the Sealed Hierarchies section above
+
+class ColorsPrinter(config: PPrinterConfig): PPrinter<Colors>(Colors.serializer(), config)
+
+class CustomPPrinter7(config: PPrinterConfig): PPrinterManual<Any?>(config) {
+  fun treeifyThis(x: Any?, elementName: String?) =
+    treeify(x, elementName, config.defaultEscapeUnicode, config.defaultShowFieldNames)
+
+  override fun treeify(x: Any?, elementName: String?, escapeUnicode: Boolean, showFieldNames: Boolean): Tree =
+    when (x) {
+      is PersonFavorite ->
+        Tree.Apply(
+          "PersonFavorite",
+          iteratorOf(treeifyThis(x.name, "name"), treeifyThis(x.age, "age"), treeifyThis(x.favoriteColor, "favoriteColor")),
+          elementName
+        )
+      is Colors -> ColorsPrinter(config).treeify(x, elementName, escapeUnicode, showFieldNames)
+      else -> super.treeify(x, elementName, escapeUnicode, showFieldNames)
+    }
+}
+
+val joe = PersonFavorite("Joe", 123, Colors.Custom("FF0000"))
+val printer = CustomPPrinter7(PPrinterConfig())
+val p = printer(joe)
+println(p)
+//> PersonFavorite("Joe", 123, Custom(value = "FF0000"))
+```
+
+#### How do deal with Custom Fields in Kotlin Multiplatform
 
 In general whenever you have a atom-property i.e. something not generic you can just mark the field as @Contextual
 so long as there is a specific case defined for it in `treeifyWith`. However if you are using a type such as

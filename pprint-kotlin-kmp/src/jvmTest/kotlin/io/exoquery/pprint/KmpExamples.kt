@@ -3,6 +3,7 @@ package io.exoquery.pprint
 import io.exoquery.kmp.pprint.PPrintSequenceSerializer
 import io.exoquery.kmp.pprint.PPrinter
 import io.exoquery.kmp.pprint
+import io.exoquery.kmp.pprint.PPrinterManual
 import kotlinx.serialization.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -168,6 +169,42 @@ fun customPrinter6() {
   println(p)
 }
 
+@Serializable
+sealed interface Colors {
+  @Serializable object Red : Colors
+  @Serializable object Green : Colors
+  @Serializable object Blue : Colors
+  @Serializable data class Custom(val value: String) : Colors
+}
+
+data class PersonFavorite(val name: String, val age: Int, val favoriteColor: Colors) /// See the Sealed Hierarchies section above
+
+class ColorsPrinter(config: PPrinterConfig): PPrinter<Colors>(Colors.serializer(), config)
+
+class CustomPPrinter7(config: PPrinterConfig): PPrinterManual<Any?>(config) {
+  fun treeifyThis(x: Any?, elementName: String?) =
+    treeify(x, elementName, config.defaultEscapeUnicode, config.defaultShowFieldNames)
+
+  override fun treeify(x: Any?, elementName: String?, escapeUnicode: Boolean, showFieldNames: Boolean): Tree =
+    when (x) {
+      is PersonFavorite ->
+        Tree.Apply(
+          "PersonFavorite",
+          iteratorOf(treeifyThis(x.name, "name"), treeifyThis(x.age, "age"), treeifyThis(x.favoriteColor, "favoriteColor")),
+          elementName
+        )
+      is Colors -> ColorsPrinter(config).treeify(x, elementName, escapeUnicode, showFieldNames)
+      else -> super.treeify(x, elementName, escapeUnicode, showFieldNames)
+    }
+}
+
+fun customPrinter7() {
+  val joe = PersonFavorite("Joe", 123, Colors.Custom("FF0000"))
+  val printer = CustomPPrinter7(PPrinterConfig(showGenericForCollections = true))
+  val p = printer(joe)
+  println(p)
+}
+
 @OptIn(ExperimentalSerializationApi::class)
 fun main() {
 //  showMap()
@@ -180,5 +217,6 @@ fun main() {
 
   // GADT1.gadt()
   //GADT2.gadt()
-  customPrinter6()
+  //customPrinter6()
+  customPrinter7()
 }
