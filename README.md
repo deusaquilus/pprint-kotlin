@@ -10,6 +10,10 @@ PPrint for Kotlin is available in both JVM and Kotlin Multiplatform flavors. The
 Add the following to your build.gradle.kts:
 
 ```kotlin
+kotlin {
+  jvmToolchain(11) // if this version is any less the library will not load
+}
+
 implementation("io.exoquery:pprint-kotlin:2.0.2")
 
 // For Kotlin Multiplatform add serialization to your plugins:
